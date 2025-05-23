@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>嬰幼兒照顧追蹤系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        /* 主色彩設計 */
+        :root {
+            --primary-color: #4ecdc4;
+            --secondary-color: #45b7b8;
+            --accent-color: #ffa726;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border-color: #e9ecef;
+        }
+
+        /* 頂部標題欄 */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* 孩子選擇器 */
+        .child-selector {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+        }
+
+        .child-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .child-option.active {
+            transform: scale(1.1);
+        }
+
+        .child-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 5px;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .child-option.active .child-avatar {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(255, 167, 38, 0.3);
+        }
+
+        .child-name {
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .child-age {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* 主要內容區域 */
+        .main-content {
+            padding: 20px;
+            max-width: 100%;
+        }
+
+        /* 卡片設計 */
+        .card {
+            background: var(--card-background);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        /* 記錄條目 */
+        .record-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .record-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .record-content {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .record-notes {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* 快速操作按鈕 */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-height: 80px;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .quick-btn-icon {
+            font-size: 24px;
+        }
+
+        /* 照片展示區域 */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .photo-placeholder {
+            aspect-ratio: 1;
+            background: #f1f3f4;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-placeholder:hover {
+            border-color: var(--primary-color);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .photo-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(78, 205, 196, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* 情緒選擇器 */
+        .emotion-selector {
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .emotion-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .emotion-btn.active {
+            border-color: var(--accent-color);
+            background: rgba(255, 167, 38, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* 表單元素 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* 統計概覽 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 底部導航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 60px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* 頁面容器 */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 里程碑記錄 */
+        .milestone-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .milestone-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .milestone-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .milestone-notes {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* 日記卡片 */
+        .diary-item {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        .diary-photo {
+            height: 200px;
+            background: linear-gradient(45deg, #f1f3f4, #e9ecef);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #bdc3c7;
+        }
+
+        .diary-content {
+            padding: 20px;
+        }
+
+        .diary-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .diary-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .diary-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+        }
+
+        /* 設定頁面樣式 */
+        .settings-group {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .settings-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .settings-value {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* 添加按鈕 */
+        .add-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent-color), #ff9800);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 167, 38, 0.3);
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 167, 38, 0.4);
+        }
+
+        /* 彈出式表單 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 20px;
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease-in-out;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #ddd;
+        }
+
+        /* 動畫 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 記錄類型選擇器 */
+        .type-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .type-option {
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .type-option.active {
+            border-color: var(--primary-color);
+            background: rgba(78, 205, 196, 0.1);
+            color: var(--primary-color);
+        }
+
+        .type-option:hover {
+            border-color: var(--primary-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- 頂部標題 -->
+    <div class="header">
+        <h1 id="page-title">寶寶照顧追蹤</h1>
+    </div>
+
+    <!-- 孩子選擇器 -->
+    <div class="child-selector">
+        <div class="child-option active" data-child="child1">
+            <div class="child-avatar">👶</div>
+            <div class="child-name">小寶</div>
+            <div class="child-age">8個月</div>
+        </div>
+        <div class="child-option" data-child="child2">
+            <div class="child-avatar">👧</div>
+            <div class="child-name">小美</div>
+            <div class="child-age">2歲</div>
+        </div>
+    </div>
+
+    <!-- 首頁 -->
+    <div class="page active" id="home">
+        <div class="main-content">
+            <!-- 今日統計 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="feed-count">0</div>
+                    <div class="stat-label">今日餵食</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">睡眠次數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">換尿布</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">😊</div>
+                    <div class="stat-label">心情狀態</div>
+                </div>
+            </div>
+
+            <!-- 快速記錄 -->
+            <div class="card">
+                <div class="card-title">🚀 快速記錄</div>
+                <div class="quick-actions">
+                    <button class="quick-btn" data-action="feeding">
+                        <div class="quick-btn-icon">🍼</div>
+                        <div>餵食</div>
+                    </button>
+                    <button class="quick-btn" data-action="sleep">
+                        <div class="quick-btn-icon">😴</div>
+                        <div>睡眠</div>
+                    </button>
+                    <button class="quick-btn" data-action="diaper">
+                        <div class="quick-btn-icon">💩</div>
+                        <div>換尿布</div>
+                    </button>
+                    <button class="quick-btn" data-action="emotion">
+                        <div class="quick-btn-icon">😊</div>
+                        <div>情緒</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 最近記錄 -->
+            <div class="card">
+                <div class="card-title">📝 最近記錄</div>
+                <div id="recent-records">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">還沒有記錄</div>
+                        <div class="empty-state-subtext">點擊上方按鈕開始記錄寶寶的日常</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 照顧頁面 -->
+    <div class="page" id="care">
+        <div class="main-content">
+            <!-- 餵食記錄 -->
+            <div class="card">
+                <div class="card-title">🍼 餵食記錄</div>
+                <div id="feeding-records">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🍼</div>
+                        <div class="empty-state-text">還沒有餵食記錄</div>
+                        <div class="empty-state-subtext">點擊首頁的餵食按鈕開始記錄</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 睡眠記錄 -->
+            <div class="card">
+                <div class="card-title">😴 睡眠記錄</div>
+                <div class="record-item">
+                    <div class="record-time">13:00-15:30</div>
+                    <div class="record-content">午睡 2.5小時</div>
+                    <div class="record-notes">睡得很安穩，沒有哭鬧</div>
+                </div>
+                <div class="record-item">
+                    <div class="record-time">19:30-06:00</div>
+                    <div class="record-content">夜間睡眠 10.5小時</div>
+                    <div class="record-notes">只醒來一次喝奶</div>
+                </div>
+            </div>
+
+            <!-- 大小便記錄 -->
+            <div class="card">
+                <div class="card-title">💩 大小便記錄</div>
+                <div class="record-item">
+                    <div class="record-time">10:20</div>
+                    <div class="record-content">小便</div>
+                    <div class="record-notes">尿量正常</div>
+                </div>
+                <div class="record-item">
+                    <div class="record-time">08:45</div>
+                    <div class="record-content">大便</div>
+                    <div class="record-notes">顏色和質地都正常</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 發展頁面 -->
+    <div class="page" id="development">
+        <div class="main-content">
+            <!-- 里程碑記錄 -->
+            <div class="card">
+                <div class="card-title">🌟 發展里程碑</div>
+                <div class="milestone-item">
+                    <div class="milestone-date">2025-05-20</div>
+                    <div class="milestone-title">
+                        📸 第一次翻身
+                    </div>
+                    <div class="milestone-notes">在客廳玩耍時成功從仰躺翻身到趴著！興奮得手舞足蹈</div>
+                </div>
+                <div class="milestone-item">
+                    <div class="milestone-date">2025-05-15</div>
+                    <div class="milestone-title">
+                        📸 學會坐立
+                    </div>
+                    <div class="milestone-notes">可以獨自坐著玩玩具約10分鐘，平衡感越來越好</div>
+                </div>
+                <div class="milestone-item">
+                    <div class="milestone-date">2025-05-10</div>
+                    <div class="milestone-title">
+                        📸 第一顆牙齒
+                    </div>
+                    <div class="milestone-notes">下門牙冒出來了！有點愛咬東西</div>
+                </div>
+            </div>
+
+            <!-- 照片記錄 -->
+            <div class="card">
+                <div class="card-title">📷 成長照片</div>
+                <div class="photo-upload-area">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">點擊添加成長照片</div>
+                </div>
+                <div class="photo-grid">
+                    <div class="photo-placeholder">📸</div>
+                    <div class="photo-placeholder">📸</div>
+                    <div class="photo-placeholder">📸</div>
+                    <div class="photo-placeholder">📸</div>
+                </div>
+            </div>
+
+            <!-- 日記記錄 -->
+            <div class="card">
+                <div class="card-title">📔 成長日記</div>
+                <div class="diary-item">
+                    <div class="diary-photo">📸</div>
+                    <div class="diary-content">
+                        <div class="diary-date">2025-05-23</div>
+                        <div class="diary-title">今天的笑容特別燦爛</div>
+                        <div class="diary-text">寶寶今天特別開心，一直對著我笑，那個笑容真的能融化人心...</div>
+                    </div>
+                </div>
+                <div class="diary-item">
+                    <div class="diary-photo">📸</div>
+                    <div class="diary-content">
+                        <div class="diary-date">2025-05-22</div>
+                        <div class="diary-title">第一次吃副食品</div>
+                        <div class="diary-text">今天嘗試了胡蘿蔔泥，寶寶的表情很有趣，先是皺眉頭，後來似乎接受了...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 情緒頁面 -->
+    <div class="page" id="emotion">
+        <div class="main-content">
+            <!-- 嬰兒情緒記錄 -->
+            <div class="card">
+                <div class="card-title">😊 寶寶情緒</div>
+                <div class="emotion-selector">
+                    <div class="emotion-btn">😭</div>
+                    <div class="emotion-btn">😐</div>
+                    <div class="emotion-btn active">😊</div>
+                    <div class="emotion-btn">😄</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">情緒強度 (1-5)</label>
+                    <input type="range" class="form-input" min="1" max="5" value="4">
+                </div>
+                <div class="record-item">
+                    <div class="record-time">16:00</div>
+                    <div class="record-content">😊 好心情 (強度: 4/5)</div>
+                    <div class="record-notes">玩玩具時很開心，笑得很多</div>
+                </div>
+                <div class="record-item">
+                    <div class="record-time">12:30</div>
+                    <div class="record-content">😐 平靜 (強度: 3/5)</div>
+                    <div class="record-notes">吃完奶後很安靜</div>
+                </div>
+            </div>
+
+            <!-- 照顧者心得 -->
+            <div class="card">
+                <div class="card-title">💭 照顧心得</div>
+                <div class="form-group">
+                    <label class="form-label">今天的感想</label>
+                    <textarea class="form-textarea" placeholder="記錄照顧心得、觀察或想法...">寶寶今天特別乖，情緒很穩定。發現他開始對音樂有反應，播放輕柔的音樂時會安靜下來。</textarea>
+                </div>
+                <div class="record-item">
+                    <div class="record-time">今天</div>
+                    <div class="record-content">💡 觀察筆記</div>
+                    <div class="record-notes">寶寶似乎更喜歡溫和的聲音，大聲說話會讓他不安</div>
+                </div>
+            </div>
+
+            <!-- 情緒趨勢 -->
+            <div class="card">
+                <div class="card-title">📊 本週情緒趨勢</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">😊</div>
+                        <div class="stat-label">主要情緒</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">85%</div>
+                        <div class="stat-label">開心時光</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 設定頁面 -->
+    <div class="page" id="settings">
+        <div class="main-content">
+            <!-- 孩子資料 -->
+            <div class="card">
+                <div class="card-title">👶 孩子資料</div>
+                <div class="form-group">
+                    <label class="form-label">頭像</label>
+                    <div class="photo-upload-area">
+                        <div class="upload-icon">👶</div>
+                        <div class="upload-text">點擊更換頭像</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">姓名</label>
+                    <input type="text" class="form-input" value="小寶">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">生日</label>
+                    <input type="date" class="form-input" value="2024-09-23">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">性別</label>
+                    <select class="form-select">
+                        <option>男孩</option>
+                        <option>女孩</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 系統設定 -->
+            <div class="settings-group">
+                <div class="card-title" style="padding: 15px 20px; margin: 0;">⚙️ 系統設定</div>
+                <div class="settings-item">
+                    <div class="settings-label">提醒通知</div>
+                    <div class="settings-value">開啟</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-label">餵食提醒間隔</div>
+                    <div class="settings-value">3小時</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-label">資料備份</div>
+                    <div class="settings-value">自動</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-label">深色模式</div>
+                    <div class="settings-value">關閉</div>
+                </div>
+            </div>
+
+            <!-- 關於應用程式 -->
+            <div class="settings-group">
+                <div class="card-title" style="padding: 15px 20px; margin: 0;">ℹ️ 關於</div>
+                <div class="settings-item">
+                    <div class="settings-label">版本</div>
+                    <div class="settings-value">2.0.0</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-label">使用說明</div>
+                    <div class="settings-value">></div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-label">隱私政策</div>
+                    <div class="settings-value">></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部導航 -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-page="home">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">首頁</div>
+        </div>
+        <div class="nav-item" data-page="care">
+            <div class="nav-icon">🍼</div>
+            <div class="nav-label">照顧</div>
+        </div>
+        <div class="nav-item" data-page="development">
+            <div class="nav-icon">🌟</div>
+            <div class="nav-label">發展</div>
+        </div>
+        <div class="nav-item" data-page="emotion">
+            <div class="nav-icon">😊</div>
+            <div class="nav-label">情緒</div>
+        </div>
+        <div class="nav-item" data-page="settings">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-label">設定</div>
+        </div>
+    </div>
+
+    <!-- 浮動添加按鈕 -->
+    <button class="add-btn">+</button>
+
+    <!-- 餵食記錄彈窗 -->
+    <div id="feeding-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🍼 新增餵食記錄</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            
+            <form id="feeding-form">
+                <div class="form-group">
+                    <label class="form-label">餵食類型</label>
+                    <div class="type-selector">
+                        <div class="type-option active" data-type="母乳-左側">
+                            🤱 母乳-左側
+                        </div>
+                        <div class="type-option" data-type="母乳-右側">
+                            🤱 母乳-右側
+                        </div>
+                        <div class="type-option" data-type="配方奶">
+                            🍼 配方奶
+                        </div>
+                        <div class="type-option" data-type="副食品">
+                            🥄 副食品
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">份量 (毫升)</label>
+                    <input type="number" id="feeding-amount" class="form-input" placeholder="請輸入份量" min="0" max="500">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">時間</label>
+                    <input type="datetime-local" id="feeding-time" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">備註 (可選)</label>
+                    <textarea id="feeding-notes" class="form-textarea" placeholder="記錄餵食情況、寶寶反應等..."></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-feeding">取消</button>
+                    <button type="submit" class="btn btn-primary">儲存記錄</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===== 資料儲存系統 =====
+        // 注意：在實際環境中，請將 memoryStorage 改為 localStorage
+        const localStorage = {
+            data: {},
+            setItem: function(key, value) {
+                this.data[key] = value;
+            },
+            getItem: function(key) {
+                return this.data[key] || null;
+            },
+            removeItem: function(key) {
+                delete this.data[key];
+            }
+        };
+
+        // 在實際環境中使用 localStorage：
+        // const storage = localStorage;
+        const storage = memoryStorage;
+
+        // ===== 應用程式狀態 =====
+        let currentChild = 'child1';
+        let feedingRecords = [];
+
+        // ===== 頁面標題對應 =====
+        const pageTitles = {
+            home: '寶寶照顧追蹤',
+            care: '照顧記錄',
+            development: '發展追蹤',
+            emotion: '情緒記錄',
+            settings: '設定'
+        };
+
+        // ===== 工具函數 =====
+        function formatDateTime(date) {
+            const now = new Date(date);
+            const today = new Date();
+            const isToday = now.toDateString() === today.toDateString();
+            
+            const timeStr = now.toLocaleTimeString('zh-TW', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            
+            if (isToday) {
+                return timeStr;
+            } else {
+                return `${now.toLocaleDateString('zh-TW')} ${timeStr}`;
+            }
+        }
+
+        function generateId() {
+            return 'record_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // ===== 資料管理 =====
+        function loadData() {
+            try {
+                const savedRecords = storage.getItem(`feeding_records_${currentChild}`);
+                feedingRecords = savedRecords ? JSON.parse(savedRecords) : [];
+            } catch (error) {
+                console.error('載入資料失敗:', error);
+                feedingRecords = [];
+                showMessage('載入資料時發生錯誤', 'error');
+            }
+        }
+
+        function saveData() {
+            try {
+                storage.setItem(`feeding_records_${currentChild}`, JSON.stringify(feedingRecords));
+            } catch (error) {
+                console.error('儲存資料失敗:', error);
+                showMessage('儲存資料時發生錯誤', 'error');
+            }
+        }
+
+        function addFeedingRecord(record) {
+            record.id = generateId();
+            record.timestamp = Date.now();
+            record.child = currentChild;
+            feedingRecords.unshift(record); // 新記錄放在最前面
+            saveData();
+            updateDisplays();
+            showMessage('餵食記錄已儲存！', 'success');
+        }
+
+        // ===== UI 更新函數 =====
+        function updateDisplays() {
+            updateRecentRecords();
+            updateFeedingRecords();
+            updateStats();
+        }
+
+        function updateRecentRecords() {
+            const container = document.getElementById('recent-records');
+            if (!container) return;
+
+            if (feedingRecords.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">還沒有記錄</div>
+                        <div class="empty-state-subtext">點擊上方按鈕開始記錄寶寶的日常</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = feedingRecords.slice(0, 5).map(record => `
+                    <div class="record-item">
+                        <div class="record-time">${formatDateTime(record.datetime)}</div>
+                        <div class="record-content">🍼 ${record.type} ${record.amount}ml</div>
+                        ${record.notes ? `<div class="record-notes">${record.notes}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateFeedingRecords() {
+            const container = document.getElementById('feeding-records');
+            if (!container) return;
+
+            if (feedingRecords.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🍼</div>
+                        <div class="empty-state-text">還沒有餵食記錄</div>
+                        <div class="empty-state-subtext">點擊首頁的餵食按鈕開始記錄</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = feedingRecords.map(record => `
+                    <div class="record-item">
+                        <div class="record-time">${formatDateTime(record.datetime)}</div>
+                        <div class="record-content">${record.type} ${record.amount}ml</div>
+                        ${record.notes ? `<div class="record-notes">${record.notes}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateStats() {
+            const today = new Date().toDateString();
+            const todayRecords = feedingRecords.filter(record => 
+                new Date(record.datetime).toDateString() === today
+            );
+            
+            const feedCountElement = document.getElementById('feed-count');
+            if (feedCountElement) {
+                feedCountElement.textContent = todayRecords.length;
+            }
+        }
+
+        // ===== 訊息提示 =====
+        function showMessage(message, type = 'info') {
+            // 建立訊息元素
+            const messageEl = document.createElement('div');
+            messageEl.className = `message message-${type}`;
+            messageEl.textContent = message;
+            messageEl.style.cssText = `
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'success' ? '#4ecdc4' : type === 'error' ? '#e74c3c' : '#3498db'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 25px;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 2000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideDown 0.3s ease-out forwards;
+            `;
+
+            // 添加動畫
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(-20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+
+            document.body.appendChild(messageEl);
+
+            // 3秒後自動移除
+            setTimeout(() => {
+                messageEl.style.animation = 'slideDown 0.3s ease-in reverse forwards';
+                setTimeout(() => {
+                    if (messageEl.parentNode) {
+                        messageEl.parentNode.removeChild(messageEl);
+                    }
+                    if (style.parentNode) {
+                        style.parentNode.removeChild(style);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // ===== 彈窗管理 =====
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden'; // 防止背景滾動
+            }
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = ''; // 恢復滾動
+            }
+        }
+
+        // ===== 餵食記錄表單 =====
+        function initFeedingForm() {
+            const modal = document.getElementById('feeding-modal');
+            const form = document.getElementById('feeding-form');
+            const closeBtn = modal.querySelector('.close-btn');
+            const cancelBtn = document.getElementById('cancel-feeding');
+            const timeInput = document.getElementById('feeding-time');
+            const typeOptions = modal.querySelectorAll('.type-option');
+
+            // 設定當前時間為預設值
+            function setCurrentTime() {
+                const now = new Date();
+                const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                    .toISOString().slice(0, 16);
+                timeInput.value = localDateTime;
+            }
+
+            // 類型選擇
+            typeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    typeOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 關閉彈窗
+            function closeFeedingModal() {
+                hideModal('feeding-modal');
+                form.reset();
+                typeOptions.forEach(opt => opt.classList.remove('active'));
+                typeOptions[0].classList.add('active'); // 預設選擇第一個
+            }
+
+            closeBtn.addEventListener('click', closeFeedingModal);
+            cancelBtn.addEventListener('click', closeFeedingModal);
+
+            // 點擊背景關閉
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeFeedingModal();
+                }
+            });
+
+            // 表單提交
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const selectedType = modal.querySelector('.type-option.active');
+                const amount = document.getElementById('feeding-amount').value;
+                const datetime = document.getElementById('feeding-time').value;
+                const notes = document.getElementById('feeding-notes').value;
+
+                // 驗證
+                if (!selectedType) {
+                    showMessage('請選擇餵食類型', 'error');
+                    return;
+                }
+
+                if (!amount || amount <= 0) {
+                    showMessage('請輸入有效的份量', 'error');
+                    return;
+                }
+
+                if (!datetime) {
+                    showMessage('請選擇時間', 'error');
+                    return;
+                }
+
+                // 建立記錄
+                const record = {
+                    type: selectedType.dataset.type,
+                    amount: parseInt(amount),
+                    datetime: datetime,
+                    notes: notes.trim()
+                };
+
+                // 儲存記錄
+                addFeedingRecord(record);
+                closeFeedingModal();
+            });
+
+            // 開啟彈窗時設定預設時間
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && 
+                        mutation.attributeName === 'class' && 
+                        modal.classList.contains('show')) {
+                        setCurrentTime();
+                    }
+                });
+            });
+            observer.observe(modal, { attributes: true });
+        }
+
+        // ===== 事件監聽器 =====
+        function initEventListeners() {
+            // 導航功能
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetPage = this.getAttribute('data-page');
+                    
+                    // 移除所有active類別
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                    
+                    // 添加active類別到當前項目
+                    this.classList.add('active');
+                    document.getElementById(targetPage).classList.add('active');
+                    
+                    // 更新頁面標題
+                    document.getElementById('page-title').textContent = pageTitles[targetPage];
+                });
+            });
+
+            // 孩子選擇器
+            document.querySelectorAll('.child-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const newChild = this.getAttribute('data-child');
+                    if (newChild !== currentChild) {
+                        document.querySelectorAll('.child-option').forEach(opt => opt.classList.remove('active'));
+                        this.classList.add('active');
+                        currentChild = newChild;
+                        loadData();
+                        updateDisplays();
+                        showMessage(`已切換到 ${this.querySelector('.child-name').textContent}`, 'info');
+                    }
+                });
+            });
+
+            // 快速操作按鈕
+            document.querySelectorAll('.quick-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.getAttribute('data-action');
+                    
+                    switch(action) {
+                        case 'feeding':
+                            showModal('feeding-modal');
+                            break;
+                        case 'sleep':
+                            showMessage('睡眠記錄功能開發中...', 'info');
+                            break;
+                        case 'diaper':
+                            showMessage('換尿布記錄功能開發中...', 'info');
+                            break;
+                        case 'emotion':
+                            showMessage('情緒記錄功能開發中...', 'info');
+                            break;
+                        default:
+                            showMessage('功能開發中...', 'info');
+                    }
+                });
+            });
+
+            // 情緒選擇器
+            document.querySelectorAll('.emotion-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 照片上傳區域點擊效果
+            document.querySelectorAll('.photo-upload-area, .photo-placeholder').forEach(area => {
+                area.addEventListener('click', function() {
+                    showMessage('照片上傳功能開發中...', 'info');
+                });
+            });
+
+            // 添加按鈕
+            document.querySelector('.add-btn').addEventListener('click', function() {
+                showModal('feeding-modal');
+            });
+
+            // 設定項目點擊
+            document.querySelectorAll('.settings-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const label = this.querySelector('.settings-label').textContent;
+                    showMessage(`${label} 設定功能開發中...`, 'info');
+                });
+            });
+
+            // 鍵盤事件
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    // ESC 鍵關閉彈窗
+                    const openModal = document.querySelector('.modal.show');
+                    if (openModal) {
+                        hideModal(openModal.id);
+                    }
+                }
+            });
+        }
+
+        // ===== 應用程式初始化 =====
+        function initApp() {
+            console.log('嬰兒照顧追蹤系統初始化中...');
+            
+            try {
+                loadData();
+                updateDisplays();
+                initEventListeners();
+                initFeedingForm();
+                
+                // 設定預設的選中狀態
+                const firstTypeOption = document.querySelector('.type-option');
+                if (firstTypeOption) {
+                    firstTypeOption.classList.add('active');
+                }
+                
+                console.log('應用程式初始化完成');
+                showMessage('歡迎使用寶寶照顧追蹤系統！', 'success');
+            } catch (error) {
+                console.error('應用程式初始化失敗:', error);
+                showMessage('系統初始化時發生錯誤', 'error');
+            }
+        }
+
+        // ===== 頁面載入完成後初始化 =====
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+
+        // ===== 除錯用全域函數 =====
+        window.debugApp = {
+            getCurrentChild: () => currentChild,
+            getFeedingRecords: () => feedingRecords,
+            clearAllData: () => {
+                feedingRecords = [];
+                saveData();
+                updateDisplays();
+                showMessage('所有資料已清除', 'info');
+            },
+            addTestData: () => {
+                const testRecords = [
+                    {
+                        type: '母乳-左側',
+                        amount: 120,
+                        datetime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString().slice(0, 16),
+                        notes: '喝得很好'
+                    },
+                    {
+                        type: '配方奶',
+                        amount: 150,
+                        datetime: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().slice(0, 16),
+                        notes: '拍嗝順利'
+                    }
+                ];
+                
+                testRecords.forEach(record => addFeedingRecord(record));
+                showMessage('測試資料已添加', 'success');
+            }
+        };
+    </script>
+</body>
+</html>
