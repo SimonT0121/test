@@ -2696,6 +2696,8 @@
         }
     </style>
     <script>
+        // V5 Part3 - 完整JavaScript核心邏輯
+
         // 全域變數
         let currentChild = 'child1';
         let feedingRecords = [];
@@ -2941,6 +2943,34 @@
             return icons[category] || '🌟';
         }
 
+        // 取得情緒圖示
+        function getEmotionIcon(emotion) {
+            const emotionIcons = {
+                '開心': '😊',
+                '平靜': '😌',
+                '煩躁': '😤',
+                '哭鬧': '😭',
+                '想睡': '😪',
+                '興奮': '🤩',
+                '滿足': '😋',
+                '不安': '😰',
+                '黏人': '🥺'
+            };
+            return emotionIcons[emotion] || '😊';
+        }
+
+        // 取得照顧者心情圖示
+        function getCaregiverMoodIcon(mood) {
+            const moodIcons = {
+                '輕鬆': '😌',
+                '疲憊': '😴',
+                '焦慮': '😰',
+                '滿足': '😊',
+                '挫折': '😤'
+            };
+            return moodIcons[mood] || '😊';
+        }
+
         // 更新最近記錄
         function updateRecentRecords() {
             const container = document.getElementById('recent-records');
@@ -3016,34 +3046,6 @@
                     `;
                 }).join('');
             }
-        }
-
-        // 取得情緒圖示
-        function getEmotionIcon(emotion) {
-            const emotionIcons = {
-                '開心': '😊',
-                '平靜': '😌',
-                '煩躁': '😤',
-                '哭鬧': '😭',
-                '想睡': '😪',
-                '興奮': '🤩',
-                '滿足': '😋',
-                '不安': '😰',
-                '黏人': '🥺'
-            };
-            return emotionIcons[emotion] || '😊';
-        }
-
-        // 取得照顧者心情圖示
-        function getCaregiverMoodIcon(mood) {
-            const moodIcons = {
-                '輕鬆': '😌',
-                '疲憊': '😴',
-                '焦慮': '😰',
-                '滿足': '😊',
-                '挫折': '😤'
-            };
-            return moodIcons[mood] || '😊';
         }
 
         // 更新餵食記錄
@@ -3230,18 +3232,13 @@
 
         // V5 Part3 - 更新里程碑記錄顯示
         function updateMilestoneRecordsDisplay() {
-            // 更新各分類的記錄顯示
             updateAllMilestoneRecords();
             updateCategoryMilestoneRecords('gross-motor');
             updateCategoryMilestoneRecords('fine-motor');
             updateCategoryMilestoneRecords('language');
             updateCategoryMilestoneRecords('social');
             updateCategoryMilestoneRecords('cognitive');
-            
-            // 更新統計
             updateMilestoneStats();
-            
-            // 更新發展指引
             updateDevelopmentGuide();
         }
 
@@ -3315,78 +3312,6 @@
             }
         }
 
-        // 更新統計
-        function updateStats() {
-            const today = new Date().toDateString();
-            
-            const todayFeeding = feedingRecords.filter(record => 
-                new Date(record.datetime).toDateString() === today
-            );
-            const todaySleep = sleepRecords.filter(record => 
-                new Date(record.endTime).toDateString() === today
-            );
-            const todayDiaper = diaperRecords.filter(record => 
-                new Date(record.datetime).toDateString() === today
-            );
-            const todayEmotion = emotionRecords.filter(record => 
-                new Date(record.datetime).toDateString() === today
-            );
-            const todayCaregiverMood = caregiverMoodRecords.filter(record => 
-                new Date(record.datetime).toDateString() === today
-            );
-            
-            const feedCountElement = document.getElementById('feed-count');
-            const sleepCountElement = document.getElementById('sleep-count');
-            const diaperCountElement = document.getElementById('diaper-count');
-            const emotionCountElement = document.getElementById('emotion-count');
-            
-            if (feedCountElement) feedCountElement.textContent = todayFeeding.length;
-            if (sleepCountElement) sleepCountElement.textContent = todaySleep.length;
-            if (diaperCountElement) diaperCountElement.textContent = todayDiaper.length;
-            if (emotionCountElement) emotionCountElement.textContent = todayEmotion.length;
-
-            // 更新情緒統計
-            updateEmotionStats(todayEmotion);
-            
-            // 更新照顧者心情統計
-            updateCaregiverMoodStats(todayCaregiverMood);
-        }
-
-        // 更新情緒統計
-        function updateEmotionStats(todayEmotions) {
-            const happyCount = todayEmotions.filter(r => ['開心', '滿足', '興奮'].includes(r.emotion)).length;
-            const calmCount = todayEmotions.filter(r => ['平靜', '想睡'].includes(r.emotion)).length;
-            const fussyCount = todayEmotions.filter(r => ['煩躁', '哭鬧', '不安', '黏人'].includes(r.emotion)).length;
-
-            const happyElement = document.getElementById('happy-count');
-            const calmElement = document.getElementById('calm-count');
-            const fussyElement = document.getElementById('fussy-count');
-
-            if (happyElement) happyElement.textContent = happyCount;
-            if (calmElement) calmElement.textContent = calmCount;
-            if (fussyElement) fussyElement.textContent = fussyCount;
-        }
-
-        // 更新照顧者心情統計
-        function updateCaregiverMoodStats(todayMoods) {
-            const currentMoodIcon = document.getElementById('current-mood-icon');
-            const currentMoodText = document.getElementById('current-mood-text');
-            const confidenceLevel = document.getElementById('confidence-level');
-            
-            if (todayMoods.length > 0) {
-                // 取最新的記錄
-                const latestMood = todayMoods[todayMoods.length - 1];
-                
-                if (currentMoodIcon) currentMoodIcon.textContent = getCaregiverMoodIcon(latestMood.mood);
-                if (currentMoodText) currentMoodText.textContent = latestMood.mood;
-                if (confidenceLevel) confidenceLevel.textContent = `${latestMood.confidenceLevel}/10`;
-            } else {
-                if (currentMoodIcon) currentMoodIcon.textContent = '😌';
-                if (currentMoodText) currentMoodText.textContent = '還未記錄';
-                if (confidenceLevel) confidenceLevel.textContent = '-';
-            }
-        }
-
         // V5 Part3 - 更新里程碑統計
         function updateMilestoneStats() {
             const currentAge = calculateBabyAge();
@@ -3426,11 +3351,7 @@
         // V5 Part3 - 更新發展指引
         function updateDevelopmentGuide() {
             const currentAge = calculateBabyAge();
-            
-            // 更新當月應達成里程碑
             updateCurrentMonthMilestones(currentAge);
-            
-            // 更新下月預期里程碑
             updateNextMonthMilestones(currentAge + 1);
         }
 
@@ -3518,215 +3439,106 @@
                 `).join('');
             }
         }
-    // V5 Part3 - 顯示里程碑記錄彈窗
-        function showMilestoneModal(category = null) {
-            const modal = document.getElementById('milestone-modal');
-            const timeInput = document.getElementById('milestone-time');
+
+        // 更新統計
+        function updateStats() {
+            const today = new Date().toDateString();
             
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString().slice(0, 16);
-            timeInput.value = localDateTime;
+            const todayFeeding = feedingRecords.filter(record => 
+                new Date(record.datetime).toDateString() === today
+            );
+            const todaySleep = sleepRecords.filter(record => 
+                new Date(record.endTime).toDateString() === today
+            );
+            const todayDiaper = diaperRecords.filter(record => 
+                new Date(record.datetime).toDateString() === today
+            );
+            const todayEmotion = emotionRecords.filter(record => 
+                new Date(record.datetime).toDateString() === today
+            );
+            const todayCaregiverMood = caregiverMoodRecords.filter(record => 
+                new Date(record.datetime).toDateString() === today
+            );
             
-            // 如果指定了類別，預選該類別
-            if (category) {
-                const categoryOptions = document.querySelectorAll('#milestone-modal .category-option');
-                categoryOptions.forEach(option => {
-                    option.classList.remove('active');
-                    if (option.dataset.category === category) {
-                        option.classList.add('active');
-                        updateMilestoneOptions();
-                    }
-                });
-            }
+            const feedCountElement = document.getElementById('feed-count');
+            const sleepCountElement = document.getElementById('sleep-count');
+            const diaperCountElement = document.getElementById('diaper-count');
+            const emotionCountElement = document.getElementById('emotion-count');
             
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
+            if (feedCountElement) feedCountElement.textContent = todayFeeding.length;
+            if (sleepCountElement) sleepCountElement.textContent = todaySleep.length;
+            if (diaperCountElement) diaperCountElement.textContent = todayDiaper.length;
+            if (emotionCountElement) emotionCountElement.textContent = todayEmotion.length;
+
+            // 更新情緒統計
+            updateEmotionStats(todayEmotion);
+            
+            // 更新照顧者心情統計
+            updateCaregiverMoodStats(todayCaregiverMood);
         }
 
-        // V5 Part3 - 隱藏里程碑記錄彈窗
-        function hideMilestoneModal() {
-            const modal = document.getElementById('milestone-modal');
-            const form = document.getElementById('milestone-form');
-            
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-            form.reset();
-            
-            // 清除編輯模式標記
-            delete form.dataset.editId;
-            
-            // 重設選擇器
-            resetMilestoneFormSelectors();
+        // 更新情緒統計
+        function updateEmotionStats(todayEmotions) {
+            const happyCount = todayEmotions.filter(r => ['開心', '滿足', '興奮'].includes(r.emotion)).length;
+            const calmCount = todayEmotions.filter(r => ['平靜', '想睡'].includes(r.emotion)).length;
+            const fussyCount = todayEmotions.filter(r => ['煩躁', '哭鬧', '不安', '黏人'].includes(r.emotion)).length;
+
+            const happyElement = document.getElementById('happy-count');
+            const calmElement = document.getElementById('calm-count');
+            const fussyElement = document.getElementById('fussy-count');
+
+            if (happyElement) happyElement.textContent = happyCount;
+            if (calmElement) calmElement.textContent = calmCount;
+            if (fussyElement) fussyElement.textContent = fussyCount;
         }
 
-        // V5 Part3 - 重設里程碑表單選擇器
-        function resetMilestoneFormSelectors() {
-            // 重設發展領域選擇器
-            const categoryOptions = document.querySelectorAll('#milestone-modal .category-option');
-            categoryOptions.forEach(option => option.classList.remove('active'));
-            if (categoryOptions.length > 0) categoryOptions[0].classList.add('active');
+        // 更新照顧者心情統計
+        function updateCaregiverMoodStats(todayMoods) {
+            const currentMoodIcon = document.getElementById('current-mood-icon');
+            const currentMoodText = document.getElementById('current-mood-text');
+            const confidenceLevel = document.getElementById('confidence-level');
             
-            // 重設里程碑項目選擇器
-            const milestoneOptions = document.querySelectorAll('#milestone-modal .milestone-option');
-            milestoneOptions.forEach(option => option.classList.remove('active'));
-            
-            // 重設自訂選項
-            const customMilestoneInput = document.getElementById('custom-milestone-input');
-            if (customMilestoneInput) {
-                customMilestoneInput.style.display = 'none';
-                customMilestoneInput.value = '';
-            }
-            
-            updateMilestoneOptions();
-        }
-
-        // V5 Part3 - 更新里程碑選項
-        function updateMilestoneOptions() {
-            const selectedCategory = document.querySelector('#milestone-modal .category-option.active');
-            const milestoneOptionsContainer = document.getElementById('milestone-options-container');
-            
-            if (!selectedCategory || !milestoneOptionsContainer) return;
-            
-            const category = selectedCategory.dataset.category;
-            const categoryData = taiwanMilestones[category];
-            
-            if (!categoryData) return;
-            
-            const currentAge = calculateBabyAge();
-            
-            milestoneOptionsContainer.innerHTML = categoryData.milestones.map(milestone => {
-                const isAgeAppropriate = currentAge >= milestone.minAge && currentAge <= milestone.maxAge + 3; // 給3個月寬限
-                const ageRange = `${milestone.minAge}-${milestone.maxAge}個月`;
+            if (todayMoods.length > 0) {
+                // 取最新的記錄
+                const latestMood = todayMoods[todayMoods.length - 1];
                 
-                return `
-                    <div class="milestone-option ${isAgeAppropriate ? 'age-appropriate' : ''}" data-milestone="${milestone.name}">
-                        <div class="milestone-option-content">
-                            <div class="milestone-option-name">${milestone.name}</div>
-                            <div class="milestone-option-age">${ageRange}</div>
-                            <div class="milestone-option-description">${milestone.description}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            // 添加自訂選項
-            milestoneOptionsContainer.innerHTML += `
-                <div class="milestone-option custom-option">
-                    <div class="milestone-option-content">
-                        <div class="milestone-option-name">自訂里程碑</div>
-                        <div class="milestone-option-description">記錄其他特殊的發展里程碑</div>
-                    </div>
-                </div>
-            `;
-            
-            // 重新綁定點擊事件
-            bindMilestoneOptionEvents();
-        }
-
-        // V5 Part3 - 綁定里程碑選項點擊事件
-        function bindMilestoneOptionEvents() {
-            document.querySelectorAll('#milestone-modal .milestone-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('#milestone-modal .milestone-option').forEach(opt => {
-                        opt.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    // 處理自訂選項
-                    const customMilestoneInput = document.getElementById('custom-milestone-input');
-                    if (this.classList.contains('custom-option')) {
-                        customMilestoneInput.style.display = 'block';
-                        customMilestoneInput.focus();
-                    } else {
-                        customMilestoneInput.style.display = 'none';
-                        customMilestoneInput.value = '';
-                    }
-                });
-            });
-        }
-
-        // V5 Part3 - 切換里程碑分類篩選
-        function switchMilestoneFilter(category) {
-            currentMilestoneFilter = category;
-            
-            // 更新分類標籤樣式
-            document.querySelectorAll('.milestone-tab').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.dataset.category === category) {
-                    tab.classList.add('active');
-                }
-            });
-            
-            // 更新記錄顯示
-            document.querySelectorAll('.milestone-category-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            const targetSection = document.getElementById(`${category === 'all' ? 'all' : category}-milestones`);
-            if (targetSection) {
-                targetSection.classList.add('active');
+                if (currentMoodIcon) currentMoodIcon.textContent = getCaregiverMoodIcon(latestMood.mood);
+                if (currentMoodText) currentMoodText.textContent = latestMood.mood;
+                if (confidenceLevel) confidenceLevel.textContent = `${latestMood.confidenceLevel}/10`;
+            } else {
+                if (currentMoodIcon) currentMoodIcon.textContent = '😌';
+                if (currentMoodText) currentMoodText.textContent = '還未記錄';
+                if (confidenceLevel) confidenceLevel.textContent = '-';
             }
-            
-            updateMilestoneRecordsDisplay();
         }
 
-        // V5 Part3 - 添加里程碑記錄
-        function addMilestoneRecord(record) {
-            record.id = Date.now();
-            record.child = currentChild;
-            milestoneRecords.unshift(record);
-            saveData();
-            updateDisplay();
-            showMessage('里程碑記錄已儲存！', 'success');
-        }
-
-        // V5 Part3 - 填充里程碑表單（編輯模式）
-        function populateMilestoneForm(record) {
-            // 設定發展領域
-            document.querySelectorAll('#milestone-modal .category-option').forEach(option => {
-                option.classList.remove('active');
-                if (option.dataset.category === record.category) {
-                    option.classList.add('active');
-                }
+        // 頁面切換
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
             });
             
-            // 更新里程碑選項
-            updateMilestoneOptions();
+            document.getElementById(pageId).classList.add('active');
             
-            // 設定里程碑項目
-            setTimeout(() => {
-                const milestoneOptions = document.querySelectorAll('#milestone-modal .milestone-option');
-                let milestoneFound = false;
-                
-                milestoneOptions.forEach(option => {
-                    if (option.dataset.milestone === record.milestone) {
-                        option.classList.add('active');
-                        milestoneFound = true;
-                    }
-                });
-                
-                // 如果找不到預設選項，使用自訂選項
-                if (!milestoneFound) {
-                    const customOption = document.querySelector('#milestone-modal .milestone-option.custom-option');
-                    if (customOption) {
-                        customOption.classList.add('active');
-                        const customInput = document.getElementById('custom-milestone-input');
-                        if (customInput) {
-                            customInput.style.display = 'block';
-                            customInput.value = record.milestone;
-                        }
-                    }
-                }
-            }, 100);
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
             
-            // 設定其他欄位
-            document.getElementById('milestone-time').value = record.datetime;
-            document.getElementById('milestone-notes').value = record.notes || '';
-            
-            // 標記為編輯模式
-            document.getElementById('milestone-form').dataset.editId = record.id;
+            const titles = {
+                home: '寶寶照顧追蹤 V5 Part3',
+                care: '照顧記錄',
+                development: '發展追蹤',
+                emotion: '情緒記錄',
+                settings: '設定'
+            };
+            document.getElementById('page-title').textContent = titles[pageId];
         }
+     // V5 Part3 - 初始化與完整事件綁定
+
+        // ===============================
+        // 彈窗顯示/隱藏函數
+        // ===============================
 
         // 顯示餵食彈窗
         function showFeedingModal() {
@@ -3742,64 +3554,7 @@
             document.body.style.overflow = 'hidden';
         }
 
-        function showSleepModal() {
-            const modal = document.getElementById('sleep-modal');
-            const startTimeInput = document.getElementById('sleep-start-time');
-            
-            if (!modal) {
-                showMessage('睡眠彈窗載入錯誤，請重新整理頁面', 'error');
-                return;
-            }
-            
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString().slice(0, 16);
-            if (startTimeInput) startTimeInput.value = localDateTime;
-            
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function showDiaperModal() {
-            const modal = document.getElementById('diaper-modal');
-            const timeInput = document.getElementById('diaper-time');
-            
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString().slice(0, 16);
-            timeInput.value = localDateTime;
-            
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function showEmotionModal() {
-            const modal = document.getElementById('emotion-modal');
-            const timeInput = document.getElementById('emotion-time');
-            
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString().slice(0, 16);
-            timeInput.value = localDateTime;
-            
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function showCaregiverMoodModal() {
-            const modal = document.getElementById('caregiver-mood-modal');
-            const timeInput = document.getElementById('caregiver-mood-time');
-            
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString().slice(0, 16);
-            timeInput.value = localDateTime;
-            
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        // 隱藏彈窗函數
+        // 隱藏餵食彈窗
         function hideFeedingModal() {
             const modal = document.getElementById('feeding-modal');
             const form = document.getElementById('feeding-form');
@@ -3826,6 +3581,21 @@
             updateFeedingFormDisplay();
         }
 
+        // 顯示睡眠彈窗
+        function showSleepModal() {
+            const modal = document.getElementById('sleep-modal');
+            const startTimeInput = document.getElementById('sleep-start-time');
+            
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
+            if (startTimeInput) startTimeInput.value = localDateTime;
+            
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隱藏睡眠彈窗
         function hideSleepModal() {
             const modal = document.getElementById('sleep-modal');
             const form = document.getElementById('sleep-form');
@@ -3838,6 +3608,21 @@
             stopSleepTimer();
         }
 
+        // 顯示大小便彈窗
+        function showDiaperModal() {
+            const modal = document.getElementById('diaper-modal');
+            const timeInput = document.getElementById('diaper-time');
+            
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
+            timeInput.value = localDateTime;
+            
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隱藏大小便彈窗
         function hideDiaperModal() {
             const modal = document.getElementById('diaper-modal');
             const form = document.getElementById('diaper-form');
@@ -3853,6 +3638,21 @@
             typeOptions[0].classList.add('active');
         }
 
+        // 顯示情緒彈窗
+        function showEmotionModal() {
+            const modal = document.getElementById('emotion-modal');
+            const timeInput = document.getElementById('emotion-time');
+            
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
+            timeInput.value = localDateTime;
+            
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隱藏情緒彈窗
         function hideEmotionModal() {
             const modal = document.getElementById('emotion-modal');
             const form = document.getElementById('emotion-form');
@@ -3865,6 +3665,21 @@
             resetEmotionFormSelectors();
         }
 
+        // 顯示照顧者心情彈窗
+        function showCaregiverMoodModal() {
+            const modal = document.getElementById('caregiver-mood-modal');
+            const timeInput = document.getElementById('caregiver-mood-time');
+            
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
+            timeInput.value = localDateTime;
+            
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隱藏照顧者心情彈窗
         function hideCaregiverMoodModal() {
             const modal = document.getElementById('caregiver-mood-modal');
             const form = document.getElementById('caregiver-mood-form');
@@ -3877,7 +3692,58 @@
             resetCaregiverMoodFormSelectors();
         }
 
-        // 重設表單選擇器
+        // V5 Part3 - 顯示里程碑彈窗
+        function showMilestoneModal(category = null) {
+            const modal = document.getElementById('milestone-modal');
+            const timeInput = document.getElementById('milestone-time');
+            
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
+            timeInput.value = localDateTime;
+            
+            // 如果指定了類別，預選該類別
+            if (category) {
+                const categoryOptions = document.querySelectorAll('#milestone-modal .category-option');
+                categoryOptions.forEach(option => {
+                    option.classList.remove('active');
+                    if (option.dataset.category === category) {
+                        option.classList.add('active');
+                        updateMilestoneOptions();
+                    }
+                });
+            }
+            
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // V5 Part3 - 隱藏里程碑彈窗
+        function hideMilestoneModal() {
+            const modal = document.getElementById('milestone-modal');
+            const form = document.getElementById('milestone-form');
+            
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+            form.reset();
+            
+            delete form.dataset.editId;
+            resetMilestoneFormSelectors();
+        }
+
+        // 隱藏確認刪除彈窗
+        function hideDeleteConfirmModal() {
+            const modal = document.getElementById('delete-confirm-modal');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+            recordToDelete = null;
+        }
+
+        // ===============================
+        // 表單重設函數
+        // ===============================
+
+        // 重設情緒表單選擇器
         function resetEmotionFormSelectors() {
             const modeOptions = document.querySelectorAll('#emotion-modal .mode-option');
             modeOptions.forEach(option => option.classList.remove('active'));
@@ -3903,6 +3769,7 @@
             updateEmotionFormDisplay();
         }
 
+        // 重設照顧者心情表單選擇器
         function resetCaregiverMoodFormSelectors() {
             const moodOptions = document.querySelectorAll('#caregiver-mood-modal .caregiver-mood-option');
             moodOptions.forEach(option => option.classList.remove('active'));
@@ -3915,7 +3782,29 @@
             }
         }
 
-        // 更新表單顯示
+        // V5 Part3 - 重設里程碑表單選擇器
+        function resetMilestoneFormSelectors() {
+            const categoryOptions = document.querySelectorAll('#milestone-modal .category-option');
+            categoryOptions.forEach(option => option.classList.remove('active'));
+            if (categoryOptions.length > 0) categoryOptions[0].classList.add('active');
+            
+            const milestoneOptions = document.querySelectorAll('#milestone-modal .milestone-option');
+            milestoneOptions.forEach(option => option.classList.remove('active'));
+            
+            const customMilestoneInput = document.getElementById('custom-milestone-input');
+            if (customMilestoneInput) {
+                customMilestoneInput.style.display = 'none';
+                customMilestoneInput.value = '';
+            }
+            
+            updateMilestoneOptions();
+        }
+
+        // ===============================
+        // 表單顯示更新函數
+        // ===============================
+
+        // 更新餵食表單顯示
         function updateFeedingFormDisplay() {
             const selectedType = document.querySelector('#feeding-modal .type-option.active');
             const nursingModeSelector = document.getElementById('nursing-mode-selector');
@@ -3945,6 +3834,7 @@
             }
         }
 
+        // 更新母乳模式顯示
         function updateNursingModeDisplay() {
             const selectedMode = document.querySelector('#nursing-mode-selector .mode-option.active');
             const nursingTimer = document.getElementById('nursing-timer');
@@ -3969,6 +3859,7 @@
             }
         }
 
+        // 更新副食品份量顯示
         function updateFoodAmountDisplay() {
             const selectedUnit = document.querySelector('#food-amount .unit-option.active');
             const amountInputContainer = document.getElementById('amount-input-container');
@@ -3994,6 +3885,7 @@
             }
         }
 
+        // 更新情緒表單顯示
         function updateEmotionFormDisplay() {
             const selectedMode = document.querySelector('#emotion-modal .mode-option.active');
             const simpleMode = document.getElementById('simple-emotion-mode');
@@ -4012,7 +3904,96 @@
             }
         }
 
+        // V5 Part3 - 更新里程碑選項
+        function updateMilestoneOptions() {
+            const selectedCategory = document.querySelector('#milestone-modal .category-option.active');
+            const milestoneOptionsContainer = document.getElementById('milestone-options-container');
+            
+            if (!selectedCategory || !milestoneOptionsContainer) return;
+            
+            const category = selectedCategory.dataset.category;
+            const categoryData = taiwanMilestones[category];
+            
+            if (!categoryData) return;
+            
+            const currentAge = calculateBabyAge();
+            
+            milestoneOptionsContainer.innerHTML = categoryData.milestones.map(milestone => {
+                const isAgeAppropriate = currentAge >= milestone.minAge && currentAge <= milestone.maxAge + 3;
+                const ageRange = `${milestone.minAge}-${milestone.maxAge}個月`;
+                
+                return `
+                    <div class="milestone-option ${isAgeAppropriate ? 'age-appropriate' : ''}" data-milestone="${milestone.name}">
+                        <div class="milestone-option-content">
+                            <div class="milestone-option-name">${milestone.name}</div>
+                            <div class="milestone-option-age">${ageRange}</div>
+                            <div class="milestone-option-description">${milestone.description}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            milestoneOptionsContainer.innerHTML += `
+                <div class="milestone-option custom-option">
+                    <div class="milestone-option-content">
+                        <div class="milestone-option-name">自訂里程碑</div>
+                        <div class="milestone-option-description">記錄其他特殊的發展里程碑</div>
+                    </div>
+                </div>
+            `;
+            
+            bindMilestoneOptionEvents();
+        }
+
+        // V5 Part3 - 綁定里程碑選項點擊事件
+        function bindMilestoneOptionEvents() {
+            document.querySelectorAll('#milestone-modal .milestone-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#milestone-modal .milestone-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    const customMilestoneInput = document.getElementById('custom-milestone-input');
+                    if (this.classList.contains('custom-option')) {
+                        customMilestoneInput.style.display = 'block';
+                        customMilestoneInput.focus();
+                    } else {
+                        customMilestoneInput.style.display = 'none';
+                        customMilestoneInput.value = '';
+                    }
+                });
+            });
+        }
+
+        // V5 Part3 - 切換里程碑分類篩選
+        function switchMilestoneFilter(category) {
+            currentMilestoneFilter = category;
+            
+            document.querySelectorAll('.milestone-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.category === category) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.querySelectorAll('.milestone-category-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(`${category === 'all' ? 'all' : category}-milestones`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            updateMilestoneRecordsDisplay();
+        }
+
+        // ===============================
         // 計時器功能
+        // ===============================
+
+        // 哺乳計時器功能
         function startNursingTimer() {
             if (!nursingTimer) {
                 nursingStartTime = Date.now() - nursingElapsed * 1000;
@@ -4060,6 +4041,7 @@
             }
         }
 
+        // 睡眠計時器功能
         function startSleepTimer() {
             if (!sleepRunning) {
                 sleepStartTime = Date.now();
@@ -4105,7 +4087,10 @@
             }
         }
 
-        // 添加記錄
+        // ===============================
+        // 記錄添加函數
+        // ===============================
+
         function addFeedingRecord(record) {
             record.id = Date.now();
             record.child = currentChild;
@@ -4151,6 +4136,17 @@
             showMessage('心情記錄已儲存！', 'success');
         }
 
+        // V5 Part3 - 添加里程碑記錄
+        function addMilestoneRecord(record) {
+            record.id = Date.now();
+            record.child = currentChild;
+            milestoneRecords.unshift(record);
+            saveData();
+            updateDisplay();
+            showMessage('里程碑記錄已儲存！', 'success');
+        }
+
+        // 快速情緒記錄
         function addQuickEmotionRecord(emotion) {
             const now = new Date();
             const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
@@ -4166,19 +4162,15 @@
             addEmotionRecord(record);
         }
 
-        // 刪除記錄功能
+        // ===============================
+        // 編輯/刪除功能
+        // ===============================
+
         function confirmDeleteRecord(category, recordId) {
             recordToDelete = { category, recordId };
             const modal = document.getElementById('delete-confirm-modal');
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
-        }
-
-        function hideDeleteConfirmModal() {
-            const modal = document.getElementById('delete-confirm-modal');
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-            recordToDelete = null;
         }
 
         function deleteRecord() {
@@ -4206,7 +4198,6 @@
             showMessage('記錄已刪除', 'success');
         }
 
-        // 編輯記錄功能
         function editRecord(category, recordId) {
             let record = null;
             
@@ -4249,9 +4240,12 @@
             }
         }
 
-        // 填充表單函數（省略部分實現，因為代碼太長）
+        // ===============================
+        // 表單填充函數（編輯模式）
+        // ===============================
+
         function populateFeedingForm(record) {
-            // 餵食表單填充邏輯
+            // 設定餵食類型
             document.querySelectorAll('#feeding-modal .type-option').forEach(option => {
                 option.classList.remove('active');
                 if (option.dataset.type === record.type) {
@@ -4261,6 +4255,51 @@
             
             document.getElementById('feeding-time').value = record.datetime;
             document.getElementById('feeding-notes').value = record.notes || '';
+            
+            if (record.type && record.type.includes('母乳')) {
+                if (record.mode === 'manual') {
+                    document.querySelectorAll('#nursing-mode-selector .mode-option').forEach(option => {
+                        option.classList.remove('active');
+                        if (option.dataset.mode === 'manual') {
+                            option.classList.add('active');
+                        }
+                    });
+                    document.getElementById('nursing-start-time').value = record.startTime || record.datetime;
+                    document.getElementById('nursing-end-time').value = record.endTime || record.datetime;
+                } else {
+                    nursingElapsed = record.duration || 0;
+                    document.getElementById('nursing-time').textContent = formatDuration(nursingElapsed);
+                }
+            } else if (record.type === '配方奶') {
+                document.getElementById('formula-amount-input').value = record.amount || '';
+            } else if (record.type === '副食品') {
+                if (record.unit) {
+                    document.querySelectorAll('#food-amount .unit-option').forEach(option => {
+                        option.classList.remove('active');
+                        if (option.dataset.unit === record.unit) {
+                            option.classList.add('active');
+                        }
+                    });
+                    
+                    if (record.unit === 'ml' || record.unit === 'g') {
+                        document.getElementById('food-amount-input').value = record.amount || '';
+                    } else if (record.unit === 'percent') {
+                        document.querySelectorAll('#percent-selector .description-option').forEach(option => {
+                            option.classList.remove('active');
+                            if (option.dataset.percent === record.percent) {
+                                option.classList.add('active');
+                            }
+                        });
+                    } else if (record.unit === 'description') {
+                        document.querySelectorAll('#description-selector .description-option').forEach(option => {
+                            option.classList.remove('active');
+                            if (option.dataset.desc === record.description) {
+                                option.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            }
             
             updateFeedingFormDisplay();
             document.getElementById('feeding-form').dataset.editId = record.id;
@@ -4287,169 +4326,126 @@
         }
 
         function populateEmotionForm(record) {
-            // 情緒表單填充邏輯
+            document.querySelectorAll('#emotion-modal .mode-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.mode === record.mode) {
+                    option.classList.add('active');
+                }
+            });
+            
             document.getElementById('emotion-time').value = record.datetime;
             document.getElementById('emotion-notes').value = record.notes || '';
+            
+            if (record.mode === 'simple') {
+                document.querySelectorAll('#simple-emotion-mode .type-option').forEach(option => {
+                    option.classList.remove('active');
+                    if (option.dataset.emotion === record.emotion) {
+                        option.classList.add('active');
+                    }
+                });
+            } else {
+                document.querySelectorAll('#detailed-emotion-mode .emotion-option').forEach(option => {
+                    option.classList.remove('active');
+                    if (option.dataset.emotion === record.emotion) {
+                        option.classList.add('active');
+                    }
+                });
+                
+                if (record.intensity) {
+                    document.getElementById('emotion-intensity').value = record.intensity;
+                    document.getElementById('intensity-value').textContent = record.intensity;
+                }
+                
+                if (record.duration) {
+                    document.querySelectorAll('#emotion-modal .duration-option').forEach(option => {
+                        option.classList.remove('active');
+                        if (option.dataset.duration === record.duration) {
+                            option.classList.add('active');
+                        }
+                    });
+                }
+                
+                if (record.situations) {
+                    record.situations.forEach(situation => {
+                        document.querySelectorAll('#emotion-modal .situation-tag').forEach(tag => {
+                            if (tag.dataset.situation === situation) {
+                                tag.classList.add('active');
+                            }
+                        });
+                    });
+                }
+                
+                if (record.soothing) {
+                    document.getElementById('emotion-soothing').value = record.soothing;
+                }
+            }
+            
+            updateEmotionFormDisplay();
             document.getElementById('emotion-form').dataset.editId = record.id;
         }
 
         function populateCaregiverMoodForm(record) {
-            // 照顧者心情表單填充邏輯
+            document.querySelectorAll('#caregiver-mood-modal .caregiver-mood-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.mood === record.mood) {
+                    option.classList.add('active');
+                }
+            });
+            
+            if (record.confidenceLevel) {
+                document.getElementById('confidence-level-slider').value = record.confidenceLevel;
+                document.getElementById('confidence-value').textContent = record.confidenceLevel;
+            }
+            
             document.getElementById('caregiver-mood-time').value = record.datetime;
             document.getElementById('caregiver-thoughts').value = record.thoughts || '';
             document.getElementById('caregiver-mood-form').dataset.editId = record.id;
         }
 
-        // 頁面切換
-        function switchPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
+        // V5 Part3 - 填充里程碑表單
+        function populateMilestoneForm(record) {
+            document.querySelectorAll('#milestone-modal .category-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.category === record.category) {
+                    option.classList.add('active');
+                }
             });
             
-            document.getElementById(pageId).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(nav => {
-                nav.classList.remove('active');
-            });
-            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
-            
-            const titles = {
-                home: '寶寶照顧追蹤 V5 Part3',
-                care: '照顧記錄',
-                development: '發展追蹤',
-                emotion: '情緒記錄',
-                settings: '設定'
-            };
-            document.getElementById('page-title').textContent = titles[pageId];
-        }
-
-        // V5 Part3 - 初始化里程碑功能
-        function initMilestoneFeatures() {
-            // 快速里程碑記錄按鈕事件
-            const grossMotorBtn = document.getElementById('gross-motor-btn');
-            const fineMotorBtn = document.getElementById('fine-motor-btn');
-            const languageBtn = document.getElementById('language-btn');
-            const socialBtn = document.getElementById('social-btn');
-            const cognitiveBtn = document.getElementById('cognitive-btn');
-            const detailedMilestoneBtn = document.getElementById('detailed-milestone-btn');
-            
-            if (grossMotorBtn) grossMotorBtn.addEventListener('click', () => showMilestoneModal('gross-motor'));
-            if (fineMotorBtn) fineMotorBtn.addEventListener('click', () => showMilestoneModal('fine-motor'));
-            if (languageBtn) languageBtn.addEventListener('click', () => showMilestoneModal('language'));
-            if (socialBtn) socialBtn.addEventListener('click', () => showMilestoneModal('social'));
-            if (cognitiveBtn) cognitiveBtn.addEventListener('click', () => showMilestoneModal('cognitive'));
-            if (detailedMilestoneBtn) detailedMilestoneBtn.addEventListener('click', () => showMilestoneModal());
-            
-            // 里程碑彈窗事件
-            const milestoneModal = document.getElementById('milestone-modal');
-            if (milestoneModal) {
-                document.getElementById('close-milestone-modal').addEventListener('click', hideMilestoneModal);
-                document.getElementById('cancel-milestone-btn').addEventListener('click', hideMilestoneModal);
-                
-                // 發展領域選擇事件
-                document.querySelectorAll('#milestone-modal .category-option').forEach(option => {
-                    option.addEventListener('click', function() {
-                        document.querySelectorAll('#milestone-modal .category-option').forEach(opt => {
-                            opt.classList.remove('active');
-                        });
-                        this.classList.add('active');
-                        updateMilestoneOptions();
-                    });
-                });
-                
-                // 彈窗背景點擊關閉
-                milestoneModal.addEventListener('click', function(e) {
-                    if (e.target === this) hideMilestoneModal();
-                });
-            }
-            
-            // 里程碑分類標籤事件
-            document.querySelectorAll('.milestone-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const category = this.dataset.category;
-                    switchMilestoneFilter(category);
-                });
-            });
-            
-            // 里程碑表單提交事件
-            const milestoneForm = document.getElementById('milestone-form');
-            if (milestoneForm) {
-                milestoneForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const selectedCategory = document.querySelector('#milestone-modal .category-option.active');
-                    const selectedMilestone = document.querySelector('#milestone-modal .milestone-option.active');
-                    const customMilestoneInput = document.getElementById('custom-milestone-input');
-                    const datetime = document.getElementById('milestone-time').value;
-                    const notes = document.getElementById('milestone-notes').value;
-                    const editId = this.dataset.editId;
-                    
-                    if (!selectedCategory) {
-                        showMessage('請選擇發展領域', 'error');
-                        return;
-                    }
-                    
-                    if (!selectedMilestone) {
-                        showMessage('請選擇里程碑項目', 'error');
-                        return;
-                    }
-                    
-                    if (!datetime) {
-                        showMessage('請選擇達成日期', 'error');
-                        return;
-                    }
-                    
-                    let milestoneName = '';
-                    if (selectedMilestone.classList.contains('custom-option')) {
-                        milestoneName = customMilestoneInput.value.trim();
-                        if (!milestoneName) {
-                            showMessage('請輸入自訂里程碑名稱', 'error');
-                            return;
-                        }
-                    } else {
-                        milestoneName = selectedMilestone.dataset.milestone;
-                    }
-                    
-                    // 計算達成時的月齡
-                    const currentAge = calculateBabyAge();
-                    
-                    const record = {
-                        category: selectedCategory.dataset.category,
-                        milestone: milestoneName,
-                        datetime: datetime,
-                        notes: notes.trim(),
-                        ageAchieved: currentAge
-                    };
-                    
-                    // 編輯模式或新增模式
-                    if (editId) {
-                        // 編輯現有記錄
-                        const index = milestoneRecords.findIndex(r => r.id == editId);
-                        if (index !== -1) {
-                            record.id = parseInt(editId);
-                            record.child = milestoneRecords[index].child;
-                            milestoneRecords[index] = record;
-                            saveData();
-                            updateDisplay();
-                            showMessage('里程碑記錄已更新！', 'success');
-                        }
-                    } else {
-                        // 新增記錄
-                        addMilestoneRecord(record);
-                    }
-                    
-                    hideMilestoneModal();
-                });
-            }
-            
-            // 初始化里程碑選項
             updateMilestoneOptions();
             
-            // 初始化里程碑顯示
-            updateMilestoneRecordsDisplay();
+            setTimeout(() => {
+                const milestoneOptions = document.querySelectorAll('#milestone-modal .milestone-option');
+                let milestoneFound = false;
+                
+                milestoneOptions.forEach(option => {
+                    if (option.dataset.milestone === record.milestone) {
+                        option.classList.add('active');
+                        milestoneFound = true;
+                    }
+                });
+                
+                if (!milestoneFound) {
+                    const customOption = document.querySelector('#milestone-modal .milestone-option.custom-option');
+                    if (customOption) {
+                        customOption.classList.add('active');
+                        const customInput = document.getElementById('custom-milestone-input');
+                        if (customInput) {
+                            customInput.style.display = 'block';
+                            customInput.value = record.milestone;
+                        }
+                    }
+                }
+            }, 100);
+            
+            document.getElementById('milestone-time').value = record.datetime;
+            document.getElementById('milestone-notes').value = record.notes || '';
+            document.getElementById('milestone-form').dataset.editId = record.id;
         }
 
-        // 初始化
+        // ===============================
+        // 主初始化函數
+        // ===============================
+
         function init() {
             console.log('初始化應用程式 V5 Part3...');
             
@@ -4489,7 +4485,6 @@
             document.getElementById('sleep-btn').addEventListener('click', showSleepModal);
             document.getElementById('diaper-btn').addEventListener('click', showDiaperModal);
             document.getElementById('emotion-btn').addEventListener('click', showEmotionModal);
-            
             document.getElementById('add-btn').addEventListener('click', showFeedingModal);
             
             // 快速情緒記錄按鈕事件
@@ -4507,39 +4502,170 @@
             const caregiverMoodBtn = document.getElementById('caregiver-mood-btn');
             if (caregiverMoodBtn) caregiverMoodBtn.addEventListener('click', showCaregiverMoodModal);
             
-            // V5 Part3 - 初始化里程碑功能
-            initMilestoneFeatures();
+            // V5 Part3 - 里程碑快速記錄按鈕事件
+            const grossMotorBtn = document.getElementById('gross-motor-btn');
+            const fineMotorBtn = document.getElementById('fine-motor-btn');
+            const languageBtn = document.getElementById('language-btn');
+            const socialBtn = document.getElementById('social-btn');
+            const cognitiveBtn = document.getElementById('cognitive-btn');
+            const detailedMilestoneBtn = document.getElementById('detailed-milestone-btn');
             
-            // 表單事件綁定
-            initFormEvents();
+            if (grossMotorBtn) grossMotorBtn.addEventListener('click', () => showMilestoneModal('gross-motor'));
+            if (fineMotorBtn) fineMotorBtn.addEventListener('click', () => showMilestoneModal('fine-motor'));
+            if (languageBtn) languageBtn.addEventListener('click', () => showMilestoneModal('language'));
+            if (socialBtn) socialBtn.addEventListener('click', () => showMilestoneModal('social'));
+            if (cognitiveBtn) cognitiveBtn.addEventListener('click', () => showMilestoneModal('cognitive'));
+            if (detailedMilestoneBtn) detailedMilestoneBtn.addEventListener('click', () => showMilestoneModal());
             
-            // 初始化表單顯示
-            updateFeedingFormDisplay();
-            updateEmotionFormDisplay();
+            // V5 Part3 - 里程碑分類標籤事件
+            document.querySelectorAll('.milestone-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    switchMilestoneFilter(category);
+                });
+            });
             
-            console.log('應用程式 V5 Part3 初始化完成');
-            showMessage('✨ 寶寶照顧追蹤系統 V5 Part3 升級完成！新增發展里程碑追蹤功能', 'success');
-        }
-
-        // 表單事件初始化
-        function initFormEvents() {
             // 餵食彈窗事件
             document.getElementById('close-feeding-modal').addEventListener('click', hideFeedingModal);
             document.getElementById('cancel-feeding-btn').addEventListener('click', hideFeedingModal);
             
+            document.querySelectorAll('#feeding-modal .type-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#feeding-modal .type-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    updateFeedingFormDisplay();
+                });
+            });
+            
+            // 母乳模式選擇事件
+            document.querySelectorAll('#nursing-mode-selector .mode-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#nursing-mode-selector .mode-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    updateNursingModeDisplay();
+                });
+            });
+            
+            // 副食品單位選擇事件
+            document.querySelectorAll('#food-amount .unit-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#food-amount .unit-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    updateFoodAmountDisplay();
+                });
+            });
+            
+            // 百分比和描述性選擇事件
+            document.querySelectorAll('#percent-selector .description-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#percent-selector .description-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+            
+            document.querySelectorAll('#description-selector .description-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#description-selector .description-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+            
+            // 哺乳計時器事件
+            document.getElementById('start-nursing').addEventListener('click', startNursingTimer);
+            document.getElementById('pause-nursing').addEventListener('click', pauseNursingTimer);
+            document.getElementById('stop-nursing').addEventListener('click', stopNursingTimer);
+            
             // 睡眠彈窗事件
             document.getElementById('close-sleep-modal').addEventListener('click', hideSleepModal);
             document.getElementById('cancel-sleep-btn').addEventListener('click', hideSleepModal);
+            document.getElementById('start-sleep').addEventListener('click', startSleepTimer);
+            document.getElementById('stop-sleep').addEventListener('click', stopSleepTimer);
             
             // 大小便彈窗事件
             document.getElementById('close-diaper-modal').addEventListener('click', hideDiaperModal);
             document.getElementById('cancel-diaper-btn').addEventListener('click', hideDiaperModal);
+            
+            document.querySelectorAll('#diaper-modal .type-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#diaper-modal .type-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
             
             // 情緒彈窗事件
             const emotionModal = document.getElementById('emotion-modal');
             if (emotionModal) {
                 document.getElementById('close-emotion-modal').addEventListener('click', hideEmotionModal);
                 document.getElementById('cancel-emotion-btn').addEventListener('click', hideEmotionModal);
+                
+                // 情緒模式選擇事件
+                document.querySelectorAll('#emotion-modal .mode-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('#emotion-modal .mode-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        updateEmotionFormDisplay();
+                    });
+                });
+                
+                // 簡單模式情緒選擇事件
+                document.querySelectorAll('#simple-emotion-mode .type-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('#simple-emotion-mode .type-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    });
+                });
+                
+                // 詳細模式情緒選擇事件
+                document.querySelectorAll('#detailed-emotion-mode .emotion-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('#detailed-emotion-mode .emotion-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    });
+                });
+                
+                // 強度滑桿事件
+                const intensitySlider = document.getElementById('emotion-intensity');
+                const intensityValue = document.getElementById('intensity-value');
+                if (intensitySlider && intensityValue) {
+                    intensitySlider.addEventListener('input', function() {
+                        intensityValue.textContent = this.value;
+                    });
+                }
+                
+                // 持續時間選擇事件
+                document.querySelectorAll('#emotion-modal .duration-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('#emotion-modal .duration-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    });
+                });
+                
+                // 情境標籤選擇事件
+                document.querySelectorAll('#emotion-modal .situation-tag').forEach(tag => {
+                    tag.addEventListener('click', function() {
+                        this.classList.toggle('active');
+                    });
+                });
             }
             
             // 照顧者心情彈窗事件
@@ -4547,14 +4673,470 @@
             if (caregiverMoodModal) {
                 document.getElementById('close-caregiver-mood-modal').addEventListener('click', hideCaregiverMoodModal);
                 document.getElementById('cancel-caregiver-mood-btn').addEventListener('click', hideCaregiverMoodModal);
+                
+                // 心情選擇事件
+                document.querySelectorAll('#caregiver-mood-modal .caregiver-mood-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('#caregiver-mood-modal .caregiver-mood-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    });
+                });
+                
+                // 信心度滑桿事件
+                const confidenceSlider = document.getElementById('confidence-level-slider');
+                const confidenceValue = document.getElementById('confidence-value');
+                if (confidenceSlider && confidenceValue) {
+                    confidenceSlider.addEventListener('input', function() {
+                        confidenceValue.textContent = this.value;
+                    });
+                }
+            }
+            
+            // V5 Part3 - 里程碑彈窗事件
+            const milestoneModal = document.getElementById('milestone-modal');
+            if (milestoneModal) {
+                document.getElementById('close-milestone-modal').addEventListener('click', hideMilestoneModal);
+                document.getElementById('cancel-milestone-btn').addEventListener('click', hideMilestoneModal);
+                
+                // 發展領域選擇事件
+                document.querySelectorAll('#milestone-modal .category-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        document.querySelectorAll('#milestone-modal .category-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        updateMilestoneOptions();
+                    });
+                });
+                
+                // 彈窗背景點擊關閉
+                milestoneModal.addEventListener('click', function(e) {
+                    if (e.target === this) hideMilestoneModal();
+                });
             }
             
             // 刪除確認對話框事件
             document.getElementById('cancel-delete-btn').addEventListener('click', hideDeleteConfirmModal);
             document.getElementById('confirm-delete-btn').addEventListener('click', deleteRecord);
             
-            // 表單提交事件（省略完整實現）
-            // ... 其他表單事件綁定
+            // 彈窗背景點擊關閉
+            document.getElementById('feeding-modal').addEventListener('click', function(e) {
+                if (e.target === this) hideFeedingModal();
+            });
+            document.getElementById('sleep-modal').addEventListener('click', function(e) {
+                if (e.target === this) hideSleepModal();
+            });
+            document.getElementById('diaper-modal').addEventListener('click', function(e) {
+                if (e.target === this) hideDiaperModal();
+            });
+            document.getElementById('delete-confirm-modal').addEventListener('click', function(e) {
+                if (e.target === this) hideDeleteConfirmModal();
+            });
+            if (document.getElementById('emotion-modal')) {
+                document.getElementById('emotion-modal').addEventListener('click', function(e) {
+                    if (e.target === this) hideEmotionModal();
+                });
+            }
+            if (document.getElementById('caregiver-mood-modal')) {
+                document.getElementById('caregiver-mood-modal').addEventListener('click', function(e) {
+                    if (e.target === this) hideCaregiverMoodModal();
+                });
+            }
+            
+            // ===============================
+            // 表單提交事件 - 完整處理
+            // ===============================
+            
+            // 餵食表單提交
+            document.getElementById('feeding-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const selectedType = document.querySelector('#feeding-modal .type-option.active');
+                const datetime = document.getElementById('feeding-time').value;
+                const notes = document.getElementById('feeding-notes').value;
+                const editId = this.dataset.editId;
+                
+                if (!selectedType || !datetime) {
+                    showMessage('請完整填寫必要資訊', 'error');
+                    return;
+                }
+                
+                const record = {
+                    type: selectedType.dataset.type,
+                    datetime: datetime,
+                    notes: notes.trim()
+                };
+                
+                // 處理不同類型的記錄
+                if (selectedType.dataset.type.includes('母乳')) {
+                    const selectedMode = document.querySelector('#nursing-mode-selector .mode-option.active');
+                    
+                    if (selectedMode.dataset.mode === 'timer') {
+                        if (nursingElapsed === 0 && !editId) {
+                            showMessage('請先計時哺乳時間', 'error');
+                            return;
+                        }
+                        record.duration = nursingElapsed;
+                        record.mode = 'timer';
+                    } else {
+                        const startTime = document.getElementById('nursing-start-time').value;
+                        const endTime = document.getElementById('nursing-end-time').value;
+                        
+                        if (!startTime || !endTime) {
+                            showMessage('請設定開始和結束時間', 'error');
+                            return;
+                        }
+                        
+                        const start = new Date(startTime);
+                        const end = new Date(endTime);
+                        const duration = Math.floor((end - start) / 1000);
+                        
+                        if (duration <= 0) {
+                            showMessage('結束時間必須晚於開始時間', 'error');
+                            return;
+                        }
+                        
+                        record.duration = duration;
+                        record.mode = 'manual';
+                        record.startTime = startTime;
+                        record.endTime = endTime;
+                    }
+                } else if (selectedType.dataset.type === '配方奶') {
+                    const amount = document.getElementById('formula-amount-input').value;
+                    if (!amount || amount <= 0) {
+                        showMessage('請輸入有效的份量', 'error');
+                        return;
+                    }
+                    record.amount = parseInt(amount);
+                } else if (selectedType.dataset.type === '副食品') {
+                    const selectedUnit = document.querySelector('#food-amount .unit-option.active');
+                    
+                    if (selectedUnit.dataset.unit === 'ml' || selectedUnit.dataset.unit === 'g') {
+                        const amount = document.getElementById('food-amount-input').value;
+                        if (!amount || amount <= 0) {
+                            showMessage('請輸入有效的份量', 'error');
+                            return;
+                        }
+                        record.amount = parseFloat(amount);
+                        record.unit = selectedUnit.dataset.unit;
+                    } else if (selectedUnit.dataset.unit === 'percent') {
+                        const selectedPercent = document.querySelector('#percent-selector .description-option.active');
+                        if (!selectedPercent) {
+                            showMessage('請選擇百分比', 'error');
+                            return;
+                        }
+                        record.percent = selectedPercent.dataset.percent;
+                        record.unit = 'percent';
+                    } else if (selectedUnit.dataset.unit === 'description') {
+                        const selectedDesc = document.querySelector('#description-selector .description-option.active');
+                        if (!selectedDesc) {
+                            showMessage('請選擇描述', 'error');
+                            return;
+                        }
+                        record.description = selectedDesc.dataset.desc;
+                        record.unit = 'description';
+                    }
+                }
+                
+                // 編輯或新增
+                if (editId) {
+                    const index = feedingRecords.findIndex(r => r.id == editId);
+                    if (index !== -1) {
+                        record.id = parseInt(editId);
+                        record.child = feedingRecords[index].child;
+                        feedingRecords[index] = record;
+                        saveData();
+                        updateDisplay();
+                        showMessage('餵食記錄已更新！', 'success');
+                    }
+                } else {
+                    addFeedingRecord(record);
+                }
+                
+                hideFeedingModal();
+            });
+            
+            // 睡眠表單提交
+            document.getElementById('sleep-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const startTime = document.getElementById('sleep-start-time').value;
+                const endTime = document.getElementById('sleep-end-time').value;
+                const notes = document.getElementById('sleep-notes').value;
+                const editId = this.dataset.editId;
+                
+                if (!startTime || !endTime) {
+                    showMessage('請設定開始和結束時間', 'error');
+                    return;
+                }
+                
+                const start = new Date(startTime);
+                const end = new Date(endTime);
+                const duration = Math.floor((end - start) / 1000);
+                
+                if (duration <= 0) {
+                    showMessage('結束時間必須晚於開始時間', 'error');
+                    return;
+                }
+                
+                const record = {
+                    startTime: startTime,
+                    endTime: endTime,
+                    duration: duration,
+                    notes: notes.trim()
+                };
+                
+                if (editId) {
+                    const index = sleepRecords.findIndex(r => r.id == editId);
+                    if (index !== -1) {
+                        record.id = parseInt(editId);
+                        record.child = sleepRecords[index].child;
+                        sleepRecords[index] = record;
+                        saveData();
+                        updateDisplay();
+                        showMessage('睡眠記錄已更新！', 'success');
+                    }
+                } else {
+                    addSleepRecord(record);
+                }
+                
+                hideSleepModal();
+            });
+            
+            // 大小便表單提交
+            document.getElementById('diaper-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const selectedType = document.querySelector('#diaper-modal .type-option.active');
+                const datetime = document.getElementById('diaper-time').value;
+                const notes = document.getElementById('diaper-notes').value;
+                const editId = this.dataset.editId;
+                
+                if (!selectedType || !datetime) {
+                    showMessage('請完整填寫必要資訊', 'error');
+                    return;
+                }
+                
+                const record = {
+                    type: selectedType.dataset.type,
+                    datetime: datetime,
+                    notes: notes.trim()
+                };
+                
+                if (editId) {
+                    const index = diaperRecords.findIndex(r => r.id == editId);
+                    if (index !== -1) {
+                        record.id = parseInt(editId);
+                        record.child = diaperRecords[index].child;
+                        diaperRecords[index] = record;
+                        saveData();
+                        updateDisplay();
+                        showMessage('大小便記錄已更新！', 'success');
+                    }
+                } else {
+                    addDiaperRecord(record);
+                }
+                
+                hideDiaperModal();
+            });
+            
+            // 情緒表單提交
+            const emotionForm = document.getElementById('emotion-form');
+            if (emotionForm) {
+                emotionForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const selectedMode = document.querySelector('#emotion-modal .mode-option.active');
+                    const datetime = document.getElementById('emotion-time').value;
+                    const notes = document.getElementById('emotion-notes').value;
+                    const editId = this.dataset.editId;
+                    
+                    if (!datetime) {
+                        showMessage('請選擇時間', 'error');
+                        return;
+                    }
+                    
+                    const record = {
+                        datetime: datetime,
+                        notes: notes.trim(),
+                        mode: selectedMode.dataset.mode
+                    };
+                    
+                    if (selectedMode.dataset.mode === 'simple') {
+                        const selectedEmotion = document.querySelector('#simple-emotion-mode .type-option.active');
+                        if (!selectedEmotion) {
+                            showMessage('請選擇情緒', 'error');
+                            return;
+                        }
+                        record.emotion = selectedEmotion.dataset.emotion;
+                    } else {
+                        const selectedEmotion = document.querySelector('#detailed-emotion-mode .emotion-option.active');
+                        if (!selectedEmotion) {
+                            showMessage('請選擇情緒', 'error');
+                            return;
+                        }
+                        record.emotion = selectedEmotion.dataset.emotion;
+                        record.intensity = document.getElementById('emotion-intensity').value;
+                        
+                        const selectedDuration = document.querySelector('#emotion-modal .duration-option.active');
+                        if (selectedDuration) {
+                            record.duration = selectedDuration.dataset.duration;
+                        }
+                        
+                        const selectedSituations = [];
+                        document.querySelectorAll('#emotion-modal .situation-tag.active').forEach(tag => {
+                            selectedSituations.push(tag.dataset.situation);
+                        });
+                        record.situations = selectedSituations;
+                        
+                        record.soothing = document.getElementById('emotion-soothing').value.trim();
+                    }
+                    
+                    if (editId) {
+                        const index = emotionRecords.findIndex(r => r.id == editId);
+                        if (index !== -1) {
+                            record.id = parseInt(editId);
+                            record.child = emotionRecords[index].child;
+                            emotionRecords[index] = record;
+                            saveData();
+                            updateDisplay();
+                            showMessage('情緒記錄已更新！', 'success');
+                        }
+                    } else {
+                        addEmotionRecord(record);
+                    }
+                    
+                    hideEmotionModal();
+                });
+            }
+            
+            // 照顧者心情表單提交
+            const caregiverMoodForm = document.getElementById('caregiver-mood-form');
+            if (caregiverMoodForm) {
+                caregiverMoodForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const selectedMood = document.querySelector('#caregiver-mood-modal .caregiver-mood-option.active');
+                    const datetime = document.getElementById('caregiver-mood-time').value;
+                    const thoughts = document.getElementById('caregiver-thoughts').value;
+                    const confidenceLevel = document.getElementById('confidence-level-slider').value;
+                    const editId = this.dataset.editId;
+                    
+                    if (!selectedMood || !datetime) {
+                        showMessage('請完整填寫必要資訊', 'error');
+                        return;
+                    }
+                    
+                    const record = {
+                        mood: selectedMood.dataset.mood,
+                        datetime: datetime,
+                        thoughts: thoughts.trim(),
+                        confidenceLevel: parseInt(confidenceLevel)
+                    };
+                    
+                    if (editId) {
+                        const index = caregiverMoodRecords.findIndex(r => r.id == editId);
+                        if (index !== -1) {
+                            record.id = parseInt(editId);
+                            record.child = caregiverMoodRecords[index].child;
+                            caregiverMoodRecords[index] = record;
+                            saveData();
+                            updateDisplay();
+                            showMessage('心情記錄已更新！', 'success');
+                        }
+                    } else {
+                        addCaregiverMoodRecord(record);
+                    }
+                    
+                    hideCaregiverMoodModal();
+                });
+            }
+            
+            // V5 Part3 - 里程碑表單提交
+            const milestoneForm = document.getElementById('milestone-form');
+            if (milestoneForm) {
+                milestoneForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const selectedCategory = document.querySelector('#milestone-modal .category-option.active');
+                    const selectedMilestone = document.querySelector('#milestone-modal .milestone-option.active');
+                    const customMilestoneInput = document.getElementById('custom-milestone-input');
+                    const datetime = document.getElementById('milestone-time').value;
+                    const notes = document.getElementById('milestone-notes').value;
+                    const editId = this.dataset.editId;
+                    
+                    if (!selectedCategory || !selectedMilestone || !datetime) {
+                        showMessage('請完整填寫必要資訊', 'error');
+                        return;
+                    }
+                    
+                    let milestoneName = '';
+                    if (selectedMilestone.classList.contains('custom-option')) {
+                        milestoneName = customMilestoneInput.value.trim();
+                        if (!milestoneName) {
+                            showMessage('請輸入自訂里程碑名稱', 'error');
+                            return;
+                        }
+                    } else {
+                        milestoneName = selectedMilestone.dataset.milestone;
+                    }
+                    
+                    const currentAge = calculateBabyAge();
+                    
+                    const record = {
+                        category: selectedCategory.dataset.category,
+                        milestone: milestoneName,
+                        datetime: datetime,
+                        notes: notes.trim(),
+                        ageAchieved: currentAge
+                    };
+                    
+                    if (editId) {
+                        const index = milestoneRecords.findIndex(r => r.id == editId);
+                        if (index !== -1) {
+                            record.id = parseInt(editId);
+                            record.child = milestoneRecords[index].child;
+                            milestoneRecords[index] = record;
+                            saveData();
+                            updateDisplay();
+                            showMessage('里程碑記錄已更新！', 'success');
+                        }
+                    } else {
+                        addMilestoneRecord(record);
+                    }
+                    
+                    hideMilestoneModal();
+                });
+            }
+            
+            // ESC 鍵關閉彈窗
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modals = document.querySelectorAll('.modal.show');
+                    modals.forEach(modal => {
+                        if (modal.id === 'feeding-modal') hideFeedingModal();
+                        if (modal.id === 'sleep-modal') hideSleepModal();
+                        if (modal.id === 'diaper-modal') hideDiaperModal();
+                        if (modal.id === 'emotion-modal') hideEmotionModal();
+                        if (modal.id === 'caregiver-mood-modal') hideCaregiverMoodModal();
+                        if (modal.id === 'milestone-modal') hideMilestoneModal(); // V5 Part3 新增
+                        if (modal.id === 'delete-confirm-modal') hideDeleteConfirmModal();
+                    });
+                }
+            });
+            
+            // 初始化餵食和情緒表單顯示
+            updateFeedingFormDisplay();
+            updateEmotionFormDisplay();
+            
+            // V5 Part3 - 初始化里程碑選項
+            updateMilestoneOptions();
+            updateMilestoneRecordsDisplay();
+            
+            console.log('應用程式 V5 Part3 初始化完成');
+            showMessage('✨ 寶寶照顧追蹤系統 V5 Part3 升級完成！新增發展里程碑追蹤功能', 'success');
         }
 
         // 除錯工具
@@ -4578,8 +5160,86 @@
                 updateDisplay();
                 showMessage('所有資料已清除', 'info');
             },
+            addTestData: () => {
+                // 添加測試餵食記錄
+                addFeedingRecord({
+                    type: '配方奶',
+                    amount: 150,
+                    datetime: new Date().toISOString().slice(0, 16),
+                    notes: '測試配方奶記錄'
+                });
+                
+                // 添加測試母乳記錄
+                addFeedingRecord({
+                    type: '母乳-左側',
+                    duration: 900,
+                    mode: 'timer',
+                    datetime: new Date(Date.now() - 3600000).toISOString().slice(0, 16),
+                    notes: '測試母乳計時記錄'
+                });
+                
+                // 添加測試副食品記錄
+                addFeedingRecord({
+                    type: '副食品',
+                    unit: 'description',
+                    description: '吃了一半',
+                    datetime: new Date(Date.now() - 1800000).toISOString().slice(0, 16),
+                    notes: '測試副食品描述記錄'
+                });
+                
+                // 添加測試睡眠記錄
+                const now = new Date();
+                const twoHoursAgo = new Date(now.getTime() - 2 * 3600000);
+                addSleepRecord({
+                    startTime: twoHoursAgo.toISOString().slice(0, 16),
+                    endTime: now.toISOString().slice(0, 16),
+                    duration: 7200,
+                    notes: '測試睡眠記錄'
+                });
+                
+                // 添加測試大小便記錄
+                addDiaperRecord({
+                    type: '大小便',
+                    datetime: new Date(Date.now() - 900000).toISOString().slice(0, 16),
+                    notes: '測試大小便記錄'
+                });
+                
+                // 添加測試情緒記錄
+                addEmotionRecord({
+                    emotion: '開心',
+                    datetime: new Date().toISOString().slice(0, 16),
+                    mode: 'simple',
+                    notes: '測試簡單情緒記錄'
+                });
+                
+                addEmotionRecord({
+                    emotion: '煩躁',
+                    datetime: new Date(Date.now() - 1800000).toISOString().slice(0, 16),
+                    mode: 'detailed',
+                    intensity: 4,
+                    duration: '半小時',
+                    situations: ['餵食前', '外出'],
+                    soothing: '抱抱和輕拍背部有效',
+                    notes: '測試詳細情緒記錄'
+                });
+                
+                // 添加測試照顧者心情記錄
+                addCaregiverMoodRecord({
+                    mood: '輕鬆',
+                    datetime: new Date().toISOString().slice(0, 16),
+                    confidenceLevel: 7,
+                    thoughts: '今天寶寶很乖，餵食和睡眠都很順利，感覺自己越來越熟練了！'
+                });
+                
+                addCaregiverMoodRecord({
+                    mood: '疲憊',
+                    datetime: new Date(Date.now() - 86400000).toISOString().slice(0, 16),
+                    confidenceLevel: 4,
+                    thoughts: '昨晚寶寶哭鬧了很久，睡眠不足，感覺有點累。希望今天能好一點。'
+                });
+            },
+            // V5 Part3 新增：添加測試里程碑數據
             addTestMilestoneData: () => {
-                // 添加測試里程碑記錄
                 addMilestoneRecord({
                     category: 'gross-motor',
                     milestone: '翻身',
@@ -4603,6 +5263,22 @@
                     notes: '能夠穩定抓住玩具',
                     ageAchieved: 4
                 });
+                
+                addMilestoneRecord({
+                    category: 'social',
+                    milestone: '社會性微笑',
+                    datetime: new Date(Date.now() - 259200000).toISOString().slice(0, 16),
+                    notes: '看到人會開心地微笑',
+                    ageAchieved: 3
+                });
+                
+                addMilestoneRecord({
+                    category: 'cognitive',
+                    milestone: '追視物品',
+                    datetime: new Date(Date.now() - 345600000).toISOString().slice(0, 16),
+                    notes: '眼睛會跟著玩具移動',
+                    ageAchieved: 3
+                });
             }
         };
 
@@ -4612,8 +5288,6 @@
         } else {
             init();
         }
-
-        console.log('V5 Part3 - 里程碑功能整合完成');
-    </script>
+    </script>   
 </body>
 </html>
