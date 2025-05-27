@@ -2578,7 +2578,7 @@
                         </div>
                         <button class="btn btn-secondary" onclick="showHelp()">查看</button>
                     </div>
-                </div>
+                    </div>
             </div>
         </div>
     </div>
@@ -3356,6 +3356,286 @@
         // 預設頭像選項
         const presetAvatars = ['👶', '👧', '👦', '🍼', '🧸', '🐻', '🐰', '🌟'];
 
+        // 全域函數定義 - 確保可以在內聯事件中調用
+        window.editRecord = function(category, recordId) {
+            let record = null;
+            let modalType = '';
+            
+            switch (category) {
+                case '餵食':
+                    record = feedingRecords.find(r => r.id === recordId);
+                    modalType = 'feeding';
+                    break;
+                case '睡眠':
+                    record = sleepRecords.find(r => r.id === recordId);
+                    modalType = 'sleep';
+                    break;
+                case '大小便':
+                    record = diaperRecords.find(r => r.id === recordId);
+                    modalType = 'diaper';
+                    break;
+                case '情緒':
+                    record = emotionRecords.find(r => r.id === recordId);
+                    modalType = 'emotion';
+                    break;
+                case '照顧者心情':
+                    record = caregiverMoodRecords.find(r => r.id === recordId);
+                    modalType = 'caregiver-mood';
+                    break;
+                case '里程碑':
+                    record = milestoneRecords.find(r => r.id === recordId);
+                    modalType = 'milestone';
+                    break;
+            }
+            
+            if (record) {
+                showModal(modalType, record);
+            }
+        };
+
+        window.confirmDeleteRecord = function(category, recordId) {
+            recordToDelete = { category, recordId };
+            showModal('delete-confirm');
+        };
+
+        function deleteRecord() {
+            if (!recordToDelete) return;
+            
+            const { category, recordId } = recordToDelete;
+            
+            switch (category) {
+                case '餵食':
+                    feedingRecords = feedingRecords.filter(record => record.id !== recordId);
+                    break;
+                case '睡眠':
+                    sleepRecords = sleepRecords.filter(record => record.id !== recordId);
+                    break;
+                case '大小便':
+                    diaperRecords = diaperRecords.filter(record => record.id !== recordId);
+                    break;
+                case '情緒':
+                    emotionRecords = emotionRecords.filter(record => record.id !== recordId);
+                    break;
+                case '照顧者心情':
+                    caregiverMoodRecords = caregiverMoodRecords.filter(record => record.id !== recordId);
+                    break;
+                case '里程碑':
+                    milestoneRecords = milestoneRecords.filter(record => record.id !== recordId);
+                    break;
+            }
+            
+            saveData();
+            updateDisplay();
+            hideModal('delete-confirm');
+            showMessage('記錄已刪除', 'success');
+        }
+
+        // 其他全域函數
+        window.switchBaby = function(babyId) {
+            if (babyId === currentBaby) return;
+            
+            currentBaby = babyId;
+            saveData();
+            updateDisplay();
+            
+            const baby = babies[babyId];
+            showMessage(`已切換到 ${baby?.name || '寶寶'}`, 'info');
+        };
+
+        window.startInitialSetup = function() {
+            showModal('baby-profile');
+        };
+
+        window.selectPresetAvatar = function(emoji) {
+            // 更新預覽
+            const preview = document.getElementById('avatar-preview');
+            preview.innerHTML = emoji;
+            
+            // 更新選擇狀態
+            document.querySelectorAll('.preset-avatar').forEach(avatar => {
+                avatar.classList.remove('selected');
+            });
+            
+            const selectedAvatar = document.querySelector(`[data-avatar="${emoji}"]`);
+            if (selectedAvatar) {
+                selectedAvatar.classList.add('selected');
+            }
+            
+            // 清除上傳的照片
+            document.getElementById('avatar-file').value = '';
+        };
+
+        window.handleAvatarUpload = function(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // 檢查檔案大小（200KB限制）
+            if (file.size > 200 * 1024) {
+                showMessage('照片檔案過大，請選擇小於200KB的檔案', 'error');
+                return;
+            }
+
+            // 檢查檔案類型
+            if (!file.type.startsWith('image/')) {
+                showMessage('請選擇有效的圖片檔案', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('avatar-preview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="寶寶頭像">`;
+                
+                // 清除預設頭像選擇
+                document.querySelectorAll('.preset-avatar').forEach(avatar => {
+                    avatar.classList.remove('selected');
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.showModal = showModal;
+        window.hideModal = hideModal;
+
+        window.toggleSetting = function(settingName) {
+            const toggle = document.getElementById(`${settingName}-toggle`);
+            const isActive = toggle.classList.contains('active');
+            
+            if (isActive) {
+                toggle.classList.remove('active');
+                settings[settingName] = false;
+            } else {
+                toggle.classList.add('active');
+                settings[settingName] = true;
+            }
+            
+            saveData();
+            showMessage(`${isActive ? '關閉' : '開啟'}${getSettingDisplayName(settingName)}`, 'info');
+        };
+
+        window.updateSetting = function(settingName, value) {
+            settings[settingName] = value;
+            saveData();
+            showMessage(`已更新${getSettingDisplayName(settingName)}設定`, 'info');
+        };
+
+        window.exportData = function() {
+            const data = {
+                babies: babies,
+                settings: settings,
+                feedingRecords: feedingRecords,
+                sleepRecords: sleepRecords,
+                diaperRecords: diaperRecords,
+                emotionRecords: emotionRecords,
+                caregiverMoodRecords: caregiverMoodRecords,
+                milestoneRecords: milestoneRecords,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `baby-care-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage('資料匯出成功！', 'success');
+        };
+
+        window.importData = function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.babies) babies = data.babies;
+                        if (data.settings) settings = { ...settings, ...data.settings };
+                        if (data.feedingRecords) feedingRecords = data.feedingRecords;
+                        if (data.sleepRecords) sleepRecords = data.sleepRecords;
+                        if (data.diaperRecords) diaperRecords = data.diaperRecords;
+                        if (data.emotionRecords) emotionRecords = data.emotionRecords;
+                        if (data.caregiverMoodRecords) caregiverMoodRecords = data.caregiverMoodRecords;
+                        if (data.milestoneRecords) milestoneRecords = data.milestoneRecords;
+                        
+                        saveData();
+                        updateDisplay();
+                        showMessage('資料匯入成功！', 'success');
+                    } catch (error) {
+                        showMessage('檔案格式錯誤，匯入失敗', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        };
+
+        window.confirmClearData = function() {
+            if (confirm('確定要清除所有資料嗎？此操作無法復原！')) {
+                babies = {};
+                settings = {
+                    'feeding-reminder': false,
+                    'sleep-reminder': false,
+                    'reminder-interval': '3',
+                    'stats-period': 'day',
+                    'theme': 'default'
+                };
+                feedingRecords = [];
+                sleepRecords = [];
+                diaperRecords = [];
+                emotionRecords = [];
+                caregiverMoodRecords = [];
+                milestoneRecords = [];
+                currentBaby = 'baby1';
+                
+                // 清除所有存儲
+                if (typeof(Storage) !== "undefined") {
+                    localStorage.removeItem('babyCareData');
+                }
+                window.appData = null;
+                
+                saveData();
+                updateDisplay();
+                showMessage('所有資料已清除', 'info');
+            }
+        };
+
+        window.showHelp = function() {
+            alert(`嬰幼兒照顧追蹤系統使用說明
+
+1. 首次使用請先設置寶寶基本資料
+2. 在首頁快速記錄日常照顧活動
+3. 在照顧頁面查看詳細記錄
+4. 在發展頁面追蹤重要里程碑
+5. 在情緒頁面記錄寶寶和照顧者的情緒狀態
+6. 在設定頁面個人化您的使用體驗
+7. 點擊記錄旁的編輯按鈕可修改記錄
+8. 資料會自動儲存，重新載入頁面後仍會保留
+
+如有任何問題，請聯繫系統管理員。`);
+        };
+
+        function getSettingDisplayName(settingName) {
+            const names = {
+                'feeding-reminder': '餵食提醒',
+                'sleep-reminder': '睡眠提醒',
+                'reminder-interval': '提醒間隔',
+                'stats-period': '統計週期',
+                'theme': '介面主題'
+            };
+            return names[settingName] || settingName;
+        }
+
         // 訊息提示功能
         function showMessage(text, type = 'info') {
             const existingMessage = document.querySelector('.message');
@@ -3660,21 +3940,203 @@
             });
         }
 
-        // 切換寶寶
-        function switchBaby(babyId) {
-            if (babyId === currentBaby) return;
+        // 快速情緒記錄
+        function addQuickEmotionRecord(emotion) {
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
             
-            currentBaby = babyId;
-            saveData();
-            updateDisplay();
+            const record = {
+                emotion: emotion,
+                datetime: localDateTime,
+                mode: 'simple',
+                notes: ''
+            };
             
-            const baby = babies[babyId];
-            showMessage(`已切換到 ${baby?.name || '寶寶'}`, 'info');
+            addRecord('emotion', record);
         }
 
-        // 開始初次設置
-        function startInitialSetup() {
-            showModal('baby-profile');
+        // 計時器功能
+        function startNursingTimer() {
+            if (!nursingTimer) {
+                nursingStartTime = Date.now() - nursingElapsed * 1000;
+                nursingTimer = setInterval(updateNursingDisplay, 1000);
+                nursingPaused = false;
+                
+                document.getElementById('start-nursing').style.display = 'none';
+                document.getElementById('pause-nursing').style.display = 'inline-block';
+                document.getElementById('stop-nursing').style.display = 'inline-block';
+                document.getElementById('nursing-status').textContent = '正在餵奶計時中...';
+            }
+        }
+
+        function pauseNursingTimer() {
+            if (nursingTimer && !nursingPaused) {
+                clearInterval(nursingTimer);
+                nursingTimer = null;
+                nursingPaused = true;
+                
+                document.getElementById('start-nursing').style.display = 'inline-block';
+                document.getElementById('pause-nursing').style.display = 'none';
+                document.getElementById('nursing-status').textContent = '餵奶計時已暫停';
+            }
+        }
+
+        function stopNursingTimer() {
+            if (nursingTimer) {
+                clearInterval(nursingTimer);
+            }
+            nursingTimer = null;
+            nursingElapsed = 0;
+            nursingPaused = false;
+            
+            document.getElementById('nursing-time').textContent = '00:00';
+            document.getElementById('start-nursing').style.display = 'inline-block';
+            document.getElementById('pause-nursing').style.display = 'none';
+            document.getElementById('stop-nursing').style.display = 'none';
+            document.getElementById('nursing-status').textContent = '準備開始餵奶計時';
+        }
+
+        function updateNursingDisplay() {
+            if (nursingTimer && !nursingPaused) {
+                nursingElapsed = Math.floor((Date.now() - nursingStartTime) / 1000);
+                document.getElementById('nursing-time').textContent = formatDuration(nursingElapsed);
+            }
+        }
+
+        function startSleepTimer() {
+            if (!sleepRunning) {
+                sleepStartTime = Date.now();
+                sleepTimer = setInterval(updateSleepDisplay, 1000);
+                sleepRunning = true;
+                
+                document.getElementById('start-sleep').style.display = 'none';
+                document.getElementById('stop-sleep').style.display = 'inline-block';
+                document.getElementById('sleep-status').textContent = '睡眠計時中...';
+                
+                const sleepBtn = document.getElementById('sleep-btn');
+                if (sleepBtn) sleepBtn.classList.add('timing');
+            }
+        }
+
+        function stopSleepTimer() {
+            if (sleepTimer) {
+                clearInterval(sleepTimer);
+            }
+            sleepTimer = null;
+            sleepRunning = false;
+            
+            document.getElementById('sleep-time').textContent = '00:00:00';
+            document.getElementById('start-sleep').style.display = 'inline-block';
+            document.getElementById('stop-sleep').style.display = 'none';
+            document.getElementById('sleep-status').textContent = '按下開始計時睡眠時間';
+            
+            const endTimeInput = document.getElementById('sleep-end-time');
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
+            endTimeInput.value = localDateTime;
+            endTimeInput.disabled = false;
+            
+            const sleepBtn = document.getElementById('sleep-btn');
+            if (sleepBtn) sleepBtn.classList.remove('timing');
+        }
+
+        function updateSleepDisplay() {
+            if (sleepRunning) {
+                const elapsed = Math.floor((Date.now() - sleepStartTime) / 1000);
+                document.getElementById('sleep-time').textContent = formatDuration(elapsed);
+            }
+        }
+
+        // 記錄添加/更新函數
+        function addRecord(type, record) {
+            if (isEditMode && recordToEdit) {
+                // 編輯模式：更新現有記錄
+                updateRecord(type, record);
+            } else {
+                // 新增模式：添加新記錄
+                record.id = Date.now();
+                record.babyId = currentBaby;
+                
+                switch (type) {
+                    case 'feeding':
+                        feedingRecords.unshift(record);
+                        break;
+                    case 'sleep':
+                        sleepRecords.unshift(record);
+                        break;
+                    case 'diaper':
+                        diaperRecords.unshift(record);
+                        break;
+                    case 'emotion':
+                        emotionRecords.unshift(record);
+                        break;
+                    case 'caregiver-mood':
+                        caregiverMoodRecords.unshift(record);
+                        break;
+                    case 'milestone':
+                        milestoneRecords.unshift(record);
+                        break;
+                }
+                
+                const typeNames = {
+                    feeding: '餵食',
+                    sleep: '睡眠',
+                    diaper: '大小便',
+                    emotion: '情緒',
+                    'caregiver-mood': '心情',
+                    milestone: '里程碑'
+                };
+                
+                showMessage(`${typeNames[type]}記錄已儲存！`, 'success');
+            }
+            
+            saveData();
+            updateDisplay();
+        }
+
+        function updateRecord(type, updatedRecord) {
+            let targetArray;
+            
+            switch (type) {
+                case 'feeding':
+                    targetArray = feedingRecords;
+                    break;
+                case 'sleep':
+                    targetArray = sleepRecords;
+                    break;
+                case 'diaper':
+                    targetArray = diaperRecords;
+                    break;
+                case 'emotion':
+                    targetArray = emotionRecords;
+                    break;
+                case 'caregiver-mood':
+                    targetArray = caregiverMoodRecords;
+                    break;
+                case 'milestone':
+                    targetArray = milestoneRecords;
+                    break;
+                default:
+                    return;
+            }
+            
+            const index = targetArray.findIndex(record => record.id === recordToEdit.id);
+            if (index !== -1) {
+                targetArray[index] = { ...updatedRecord, id: recordToEdit.id, babyId: recordToEdit.babyId };
+                
+                const typeNames = {
+                    feeding: '餵食',
+                    sleep: '睡眠',
+                    diaper: '大小便',
+                    emotion: '情緒',
+                    'caregiver-mood': '心情',
+                    milestone: '里程碑'
+                };
+                
+                showMessage(`${typeNames[type]}記錄已更新！`, 'success');
+            }
         }
 
         // 顯示/隱藏彈窗
@@ -3689,7 +4151,8 @@
                 'diaper': 'diaper-modal',
                 'emotion': 'emotion-modal',
                 'caregiver-mood': 'caregiver-mood-modal',
-                'milestone': 'milestone-modal'
+                'milestone': 'milestone-modal',
+                'delete-confirm': 'delete-confirm-modal'
             };
             
             modalId = modalMap[modalType];
@@ -3989,465 +4452,101 @@
             document.getElementById('milestone-notes').value = record.notes || '';
         }
 
-        // 頭像處理
-        function handleAvatarUpload(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            // 檢查檔案大小（200KB限制）
-            if (file.size > 200 * 1024) {
-                showMessage('照片檔案過大，請選擇小於200KB的檔案', 'error');
-                return;
-            }
-
-            // 檢查檔案類型
-            if (!file.type.startsWith('image/')) {
-                showMessage('請選擇有效的圖片檔案', 'error');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('avatar-preview');
-                preview.innerHTML = `<img src="${e.target.result}" alt="寶寶頭像">`;
+        // 表單顯示更新函數
+        function updateFeedingFormDisplay() {
+            const selectedType = document.querySelector('#feeding-modal .type-option.active');
+            const nursingModeSelector = document.getElementById('nursing-mode-selector');
+            const nursingTimer = document.getElementById('nursing-timer');
+            const nursingManualTime = document.getElementById('nursing-manual-time');
+            const formulaAmount = document.getElementById('formula-amount');
+            const foodAmount = document.getElementById('food-amount');
+            
+            nursingModeSelector.style.display = 'none';
+            nursingTimer.style.display = 'none';
+            nursingManualTime.style.display = 'none';
+            formulaAmount.style.display = 'none';
+            foodAmount.style.display = 'none';
+            
+            if (selectedType) {
+                const type = selectedType.dataset.type;
                 
-                // 清除預設頭像選擇
-                document.querySelectorAll('.preset-avatar').forEach(avatar => {
-                    avatar.classList.remove('selected');
-                });
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function selectPresetAvatar(emoji) {
-            // 更新預覽
-            const preview = document.getElementById('avatar-preview');
-            preview.innerHTML = emoji;
-            
-            // 更新選擇狀態
-            document.querySelectorAll('.preset-avatar').forEach(avatar => {
-                avatar.classList.remove('selected');
-            });
-            
-            document.querySelector(`[data-avatar="${emoji}"]`).classList.add('selected');
-            
-            // 清除上傳的照片
-            document.getElementById('avatar-file').value = '';
-        }
-
-        // 設置開關
-        function toggleSetting(settingName) {
-            const toggle = document.getElementById(`${settingName}-toggle`);
-            const isActive = toggle.classList.contains('active');
-            
-            if (isActive) {
-                toggle.classList.remove('active');
-                settings[settingName] = false;
-            } else {
-                toggle.classList.add('active');
-                settings[settingName] = true;
-            }
-            
-            saveData();
-            showMessage(`${isActive ? '關閉' : '開啟'}${getSettingDisplayName(settingName)}`, 'info');
-        }
-
-        function updateSetting(settingName, value) {
-            settings[settingName] = value;
-            saveData();
-            showMessage(`已更新${getSettingDisplayName(settingName)}設定`, 'info');
-        }
-
-        function getSettingDisplayName(settingName) {
-            const names = {
-                'feeding-reminder': '餵食提醒',
-                'sleep-reminder': '睡眠提醒',
-                'reminder-interval': '提醒間隔',
-                'stats-period': '統計週期',
-                'theme': '介面主題'
-            };
-            return names[settingName] || settingName;
-        }
-
-        // 資料管理功能
-        function exportData() {
-            const data = {
-                babies: babies,
-                settings: settings,
-                feedingRecords: feedingRecords,
-                sleepRecords: sleepRecords,
-                diaperRecords: diaperRecords,
-                emotionRecords: emotionRecords,
-                caregiverMoodRecords: caregiverMoodRecords,
-                milestoneRecords: milestoneRecords,
-                exportDate: new Date().toISOString(),
-                version: '1.0'
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `baby-care-data-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showMessage('資料匯出成功！', 'success');
-        }
-
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        
-                        if (data.babies) babies = data.babies;
-                        if (data.settings) settings = { ...settings, ...data.settings };
-                        if (data.feedingRecords) feedingRecords = data.feedingRecords;
-                        if (data.sleepRecords) sleepRecords = data.sleepRecords;
-                        if (data.diaperRecords) diaperRecords = data.diaperRecords;
-                        if (data.emotionRecords) emotionRecords = data.emotionRecords;
-                        if (data.caregiverMoodRecords) caregiverMoodRecords = data.caregiverMoodRecords;
-                        if (data.milestoneRecords) milestoneRecords = data.milestoneRecords;
-                        
-                        saveData();
-                        updateDisplay();
-                        showMessage('資料匯入成功！', 'success');
-                    } catch (error) {
-                        showMessage('檔案格式錯誤，匯入失敗', 'error');
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        }
-
-        function confirmClearData() {
-            if (confirm('確定要清除所有資料嗎？此操作無法復原！')) {
-                babies = {};
-                settings = {
-                    'feeding-reminder': false,
-                    'sleep-reminder': false,
-                    'reminder-interval': '3',
-                    'stats-period': 'day',
-                    'theme': 'default'
-                };
-                feedingRecords = [];
-                sleepRecords = [];
-                diaperRecords = [];
-                emotionRecords = [];
-                caregiverMoodRecords = [];
-                milestoneRecords = [];
-                currentBaby = 'baby1';
-                
-                // 清除所有存儲
-                if (typeof(Storage) !== "undefined") {
-                    localStorage.removeItem('babyCareData');
+                if (type.includes('母乳')) {
+                    nursingModeSelector.style.display = 'block';
+                    updateNursingModeDisplay();
+                } else if (type === '配方奶') {
+                    formulaAmount.style.display = 'block';
+                } else if (type === '副食品') {
+                    foodAmount.style.display = 'block';
+                    updateFoodAmountDisplay();
                 }
-                window.appData = null;
-                
-                saveData();
-                updateDisplay();
-                showMessage('所有資料已清除', 'info');
             }
         }
 
-        function showHelp() {
-            alert(`嬰幼兒照顧追蹤系統使用說明
-
-1. 首次使用請先設置寶寶基本資料
-2. 在首頁快速記錄日常照顧活動
-3. 在照顧頁面查看詳細記錄
-4. 在發展頁面追蹤重要里程碑
-5. 在情緒頁面記錄寶寶和照顧者的情緒狀態
-6. 在設定頁面個人化您的使用體驗
-7. 點擊記錄旁的編輯按鈕可修改記錄
-8. 資料會自動儲存，重新載入頁面後仍會保留
-
-如有任何問題，請聯繫系統管理員。`);
-        }
-
-        // 計時器功能
-        function startNursingTimer() {
-            if (!nursingTimer) {
-                nursingStartTime = Date.now() - nursingElapsed * 1000;
-                nursingTimer = setInterval(updateNursingDisplay, 1000);
-                nursingPaused = false;
-                
-                document.getElementById('start-nursing').style.display = 'none';
-                document.getElementById('pause-nursing').style.display = 'inline-block';
-                document.getElementById('stop-nursing').style.display = 'inline-block';
-                document.getElementById('nursing-status').textContent = '正在餵奶計時中...';
-            }
-        }
-
-        function pauseNursingTimer() {
-            if (nursingTimer && !nursingPaused) {
-                clearInterval(nursingTimer);
-                nursingTimer = null;
-                nursingPaused = true;
-                
-                document.getElementById('start-nursing').style.display = 'inline-block';
-                document.getElementById('pause-nursing').style.display = 'none';
-                document.getElementById('nursing-status').textContent = '餵奶計時已暫停';
-            }
-        }
-
-        function stopNursingTimer() {
-            if (nursingTimer) {
-                clearInterval(nursingTimer);
-            }
-            nursingTimer = null;
-            nursingElapsed = 0;
-            nursingPaused = false;
+        function updateNursingModeDisplay() {
+            const selectedMode = document.querySelector('#nursing-mode-selector .mode-option.active');
+            const nursingTimer = document.getElementById('nursing-timer');
+            const nursingManualTime = document.getElementById('nursing-manual-time');
             
-            document.getElementById('nursing-time').textContent = '00:00';
-            document.getElementById('start-nursing').style.display = 'inline-block';
-            document.getElementById('pause-nursing').style.display = 'none';
-            document.getElementById('stop-nursing').style.display = 'none';
-            document.getElementById('nursing-status').textContent = '準備開始餵奶計時';
-        }
-
-        function updateNursingDisplay() {
-            if (nursingTimer && !nursingPaused) {
-                nursingElapsed = Math.floor((Date.now() - nursingStartTime) / 1000);
-                document.getElementById('nursing-time').textContent = formatDuration(nursingElapsed);
-            }
-        }
-
-        function startSleepTimer() {
-            if (!sleepRunning) {
-                sleepStartTime = Date.now();
-                sleepTimer = setInterval(updateSleepDisplay, 1000);
-                sleepRunning = true;
+            if (selectedMode) {
+                const mode = selectedMode.dataset.mode;
                 
-                document.getElementById('start-sleep').style.display = 'none';
-                document.getElementById('stop-sleep').style.display = 'inline-block';
-                document.getElementById('sleep-status').textContent = '睡眠計時中...';
-                
-                const sleepBtn = document.getElementById('sleep-btn');
-                if (sleepBtn) sleepBtn.classList.add('timing');
-            }
-        }
-
-        function stopSleepTimer() {
-            if (sleepTimer) {
-                clearInterval(sleepTimer);
-            }
-            sleepTimer = null;
-            sleepRunning = false;
-            
-            document.getElementById('sleep-time').textContent = '00:00:00';
-            document.getElementById('start-sleep').style.display = 'inline-block';
-            document.getElementById('stop-sleep').style.display = 'none';
-            document.getElementById('sleep-status').textContent = '按下開始計時睡眠時間';
-            
-            const endTimeInput = document.getElementById('sleep-end-time');
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString().slice(0, 16);
-            endTimeInput.value = localDateTime;
-            endTimeInput.disabled = false;
-            
-            const sleepBtn = document.getElementById('sleep-btn');
-            if (sleepBtn) sleepBtn.classList.remove('timing');
-        }
-
-        function updateSleepDisplay() {
-            if (sleepRunning) {
-                const elapsed = Math.floor((Date.now() - sleepStartTime) / 1000);
-                document.getElementById('sleep-time').textContent = formatDuration(elapsed);
-            }
-        }
-
-        // 記錄添加/更新函數
-        function addRecord(type, record) {
-            if (isEditMode && recordToEdit) {
-                // 編輯模式：更新現有記錄
-                updateRecord(type, record);
-            } else {
-                // 新增模式：添加新記錄
-                record.id = Date.now();
-                record.babyId = currentBaby;
-                
-                switch (type) {
-                    case 'feeding':
-                        feedingRecords.unshift(record);
-                        break;
-                    case 'sleep':
-                        sleepRecords.unshift(record);
-                        break;
-                    case 'diaper':
-                        diaperRecords.unshift(record);
-                        break;
-                    case 'emotion':
-                        emotionRecords.unshift(record);
-                        break;
-                    case 'caregiver-mood':
-                        caregiverMoodRecords.unshift(record);
-                        break;
-                    case 'milestone':
-                        milestoneRecords.unshift(record);
-                        break;
+                if (mode === 'timer') {
+                    nursingTimer.style.display = 'block';
+                    nursingManualTime.style.display = 'none';
+                } else if (mode === 'manual') {
+                    nursingTimer.style.display = 'none';
+                    nursingManualTime.style.display = 'block';
+                    
+                    const now = new Date();
+                    const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                        .toISOString().slice(0, 16);
+                    document.getElementById('nursing-start-time').value = localDateTime;
+                    document.getElementById('nursing-end-time').value = localDateTime;
                 }
+            }
+        }
+
+        function updateFoodAmountDisplay() {
+            const selectedUnit = document.querySelector('#food-amount .unit-option.active');
+            const amountInputContainer = document.getElementById('amount-input-container');
+            const percentSelector = document.getElementById('percent-selector');
+            const descriptionSelector = document.getElementById('description-selector');
+            const unitLabel = document.getElementById('unit-label');
+            
+            amountInputContainer.style.display = 'none';
+            percentSelector.style.display = 'none';
+            descriptionSelector.style.display = 'none';
+            
+            if (selectedUnit) {
+                const unit = selectedUnit.dataset.unit;
                 
-                const typeNames = {
-                    feeding: '餵食',
-                    sleep: '睡眠',
-                    diaper: '大小便',
-                    emotion: '情緒',
-                    'caregiver-mood': '心情',
-                    milestone: '里程碑'
-                };
+                if (unit === 'ml' || unit === 'g') {
+                    amountInputContainer.style.display = 'block';
+                    unitLabel.textContent = unit === 'ml' ? '毫升' : '公克';
+                } else if (unit === 'percent') {
+                    percentSelector.style.display = 'block';
+                } else if (unit === 'description') {
+                    descriptionSelector.style.display = 'block';
+                }
+            }
+        }
+
+        function updateEmotionFormDisplay() {
+            const selectedMode = document.querySelector('#emotion-modal .mode-option.active');
+            const simpleMode = document.getElementById('simple-emotion-mode');
+            const detailedMode = document.getElementById('detailed-emotion-mode');
+            
+            if (selectedMode) {
+                const mode = selectedMode.dataset.mode;
                 
-                showMessage(`${typeNames[type]}記錄已儲存！`, 'success');
+                if (mode === 'simple') {
+                    simpleMode.style.display = 'block';
+                    detailedMode.style.display = 'none';
+                } else if (mode === 'detailed') {
+                    simpleMode.style.display = 'none';
+                    detailedMode.style.display = 'block';
+                }
             }
-            
-            saveData();
-            updateDisplay();
-        }
-
-        function updateRecord(type, updatedRecord) {
-            let targetArray;
-            
-            switch (type) {
-                case 'feeding':
-                    targetArray = feedingRecords;
-                    break;
-                case 'sleep':
-                    targetArray = sleepRecords;
-                    break;
-                case 'diaper':
-                    targetArray = diaperRecords;
-                    break;
-                case 'emotion':
-                    targetArray = emotionRecords;
-                    break;
-                case 'caregiver-mood':
-                    targetArray = caregiverMoodRecords;
-                    break;
-                case 'milestone':
-                    targetArray = milestoneRecords;
-                    break;
-                default:
-                    return;
-            }
-            
-            const index = targetArray.findIndex(record => record.id === recordToEdit.id);
-            if (index !== -1) {
-                targetArray[index] = { ...updatedRecord, id: recordToEdit.id, babyId: recordToEdit.babyId };
-                
-                const typeNames = {
-                    feeding: '餵食',
-                    sleep: '睡眠',
-                    diaper: '大小便',
-                    emotion: '情緒',
-                    'caregiver-mood': '心情',
-                    milestone: '里程碑'
-                };
-                
-                showMessage(`${typeNames[type]}記錄已更新！`, 'success');
-            }
-        }
-
-        // 快速情緒記錄
-        function addQuickEmotionRecord(emotion) {
-            const now = new Date();
-            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString().slice(0, 16);
-            
-            const record = {
-                emotion: emotion,
-                datetime: localDateTime,
-                mode: 'simple',
-                notes: ''
-            };
-            
-            addRecord('emotion', record);
-        }
-
-        // 記錄編輯功能
-        function editRecord(category, recordId) {
-            let record = null;
-            let modalType = '';
-            
-            switch (category) {
-                case '餵食':
-                    record = feedingRecords.find(r => r.id === recordId);
-                    modalType = 'feeding';
-                    break;
-                case '睡眠':
-                    record = sleepRecords.find(r => r.id === recordId);
-                    modalType = 'sleep';
-                    break;
-                case '大小便':
-                    record = diaperRecords.find(r => r.id === recordId);
-                    modalType = 'diaper';
-                    break;
-                case '情緒':
-                    record = emotionRecords.find(r => r.id === recordId);
-                    modalType = 'emotion';
-                    break;
-                case '照顧者心情':
-                    record = caregiverMoodRecords.find(r => r.id === recordId);
-                    modalType = 'caregiver-mood';
-                    break;
-                case '里程碑':
-                    record = milestoneRecords.find(r => r.id === recordId);
-                    modalType = 'milestone';
-                    break;
-            }
-            
-            if (record) {
-                showModal(modalType, record);
-            }
-        }
-
-        // 記錄刪除功能
-        function confirmDeleteRecord(category, recordId) {
-            recordToDelete = { category, recordId };
-            showModal('delete-confirm');
-        }
-
-        function deleteRecord() {
-            if (!recordToDelete) return;
-            
-            const { category, recordId } = recordToDelete;
-            
-            switch (category) {
-                case '餵食':
-                    feedingRecords = feedingRecords.filter(record => record.id !== recordId);
-                    break;
-                case '睡眠':
-                    sleepRecords = sleepRecords.filter(record => record.id !== recordId);
-                    break;
-                case '大小便':
-                    diaperRecords = diaperRecords.filter(record => record.id !== recordId);
-                    break;
-                case '情緒':
-                    emotionRecords = emotionRecords.filter(record => record.id !== recordId);
-                    break;
-                case '照顧者心情':
-                    caregiverMoodRecords = caregiverMoodRecords.filter(record => record.id !== recordId);
-                    break;
-                case '里程碑':
-                    milestoneRecords = milestoneRecords.filter(record => record.id !== recordId);
-                    break;
-            }
-            
-            saveData();
-            updateDisplay();
-            hideModal('delete-confirm');
-            showMessage('記錄已刪除', 'success');
         }
 
         // 記錄顯示更新函數 - 添加編輯按鈕
@@ -4504,7 +4603,7 @@
                     content = `${record.icon} ${record.mood}`;
                     if (record.confidenceLevel) {
                         content += ` (信心${record.confidenceLevel}/10)`;
-                    }
+                        }
                 } else if (record.category === '里程碑') {
                     content = `${record.icon} ${record.milestone}`;
                     if (record.ageAchieved) {
@@ -5078,103 +5177,6 @@
                     select.value = settings[setting];
                 }
             });
-        }
-
-        // 表單顯示更新函數
-        function updateFeedingFormDisplay() {
-            const selectedType = document.querySelector('#feeding-modal .type-option.active');
-            const nursingModeSelector = document.getElementById('nursing-mode-selector');
-            const nursingTimer = document.getElementById('nursing-timer');
-            const nursingManualTime = document.getElementById('nursing-manual-time');
-            const formulaAmount = document.getElementById('formula-amount');
-            const foodAmount = document.getElementById('food-amount');
-            
-            nursingModeSelector.style.display = 'none';
-            nursingTimer.style.display = 'none';
-            nursingManualTime.style.display = 'none';
-            formulaAmount.style.display = 'none';
-            foodAmount.style.display = 'none';
-            
-            if (selectedType) {
-                const type = selectedType.dataset.type;
-                
-                if (type.includes('母乳')) {
-                    nursingModeSelector.style.display = 'block';
-                    updateNursingModeDisplay();
-                } else if (type === '配方奶') {
-                    formulaAmount.style.display = 'block';
-                } else if (type === '副食品') {
-                    foodAmount.style.display = 'block';
-                    updateFoodAmountDisplay();
-                }
-            }
-        }
-
-        function updateNursingModeDisplay() {
-            const selectedMode = document.querySelector('#nursing-mode-selector .mode-option.active');
-            const nursingTimer = document.getElementById('nursing-timer');
-            const nursingManualTime = document.getElementById('nursing-manual-time');
-            
-            if (selectedMode) {
-                const mode = selectedMode.dataset.mode;
-                
-                if (mode === 'timer') {
-                    nursingTimer.style.display = 'block';
-                    nursingManualTime.style.display = 'none';
-                } else if (mode === 'manual') {
-                    nursingTimer.style.display = 'none';
-                    nursingManualTime.style.display = 'block';
-                    
-                    const now = new Date();
-                    const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                        .toISOString().slice(0, 16);
-                    document.getElementById('nursing-start-time').value = localDateTime;
-                    document.getElementById('nursing-end-time').value = localDateTime;
-                }
-            }
-        }
-
-        function updateFoodAmountDisplay() {
-            const selectedUnit = document.querySelector('#food-amount .unit-option.active');
-            const amountInputContainer = document.getElementById('amount-input-container');
-            const percentSelector = document.getElementById('percent-selector');
-            const descriptionSelector = document.getElementById('description-selector');
-            const unitLabel = document.getElementById('unit-label');
-            
-            amountInputContainer.style.display = 'none';
-            percentSelector.style.display = 'none';
-            descriptionSelector.style.display = 'none';
-            
-            if (selectedUnit) {
-                const unit = selectedUnit.dataset.unit;
-                
-                if (unit === 'ml' || unit === 'g') {
-                    amountInputContainer.style.display = 'block';
-                    unitLabel.textContent = unit === 'ml' ? '毫升' : '公克';
-                } else if (unit === 'percent') {
-                    percentSelector.style.display = 'block';
-                } else if (unit === 'description') {
-                    descriptionSelector.style.display = 'block';
-                }
-            }
-        }
-
-        function updateEmotionFormDisplay() {
-            const selectedMode = document.querySelector('#emotion-modal .mode-option.active');
-            const simpleMode = document.getElementById('simple-emotion-mode');
-            const detailedMode = document.getElementById('detailed-emotion-mode');
-            
-            if (selectedMode) {
-                const mode = selectedMode.dataset.mode;
-                
-                if (mode === 'simple') {
-                    simpleMode.style.display = 'block';
-                    detailedMode.style.display = 'none';
-                } else if (mode === 'detailed') {
-                    simpleMode.style.display = 'none';
-                    detailedMode.style.display = 'block';
-                }
-            }
         }
 
         // 主要顯示更新函數
